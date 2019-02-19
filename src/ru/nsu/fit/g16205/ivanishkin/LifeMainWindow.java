@@ -4,6 +4,8 @@ import ru.nsu.cg.MainFrame;
 import ru.nsu.fit.g16205.ivanishkin.view.LifeView;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -51,14 +53,31 @@ public class LifeMainWindow extends MainFrame {
     }
 
     public void onSettings() {
-        JTextField field = new JTextField();
-        field.addActionListener(e -> {
-            try{
-                int val = Integer.parseInt(field.getText());
-                lifeView.updateSize(val);
-                lifeView.repaint();
-            } catch (NumberFormatException ex) {
+        JTextField field = new JTextField(3);
+        field.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                change();
+            }
 
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                change();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                change();
+            }
+
+            private void change() {
+                try{
+                    int val = Integer.parseInt(field.getText());
+                    lifeView.updateSize(val);
+                    lifeView.repaint();
+                } catch (NumberFormatException ex) {
+
+                }
             }
         });
         JOptionPane.showOptionDialog(

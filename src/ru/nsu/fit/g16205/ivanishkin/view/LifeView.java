@@ -4,10 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.util.ArrayList;
 
-import static java.lang.Math.*;
-import static ru.nsu.fit.g16205.ivanishkin.DrawingUtils.drawLine;
+import static java.lang.Math.sqrt;
 
 /**
  * Component which draws two diagonal lines and reacts on mouse clicks
@@ -16,12 +17,12 @@ import static ru.nsu.fit.g16205.ivanishkin.DrawingUtils.drawLine;
  */
 public class LifeView extends JPanel {
     private static final int PADDING = 10;
-
+    private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
     private static final double SQRT3 = sqrt(3);
+
+    private BufferedImage image;
     private int widthM = 4;
     private int heightN = 4;
-    private int bigRadius;
-    private int smallRadius;
 
     private ArrayList<ArrayList<Hex>> hexes = new ArrayList<>(heightN);
 
@@ -34,12 +35,16 @@ public class LifeView extends JPanel {
      * Constructs object
      */
     public LifeView() {
+        //todo: set proper image size
+        image = new BufferedImage(500, 500,
+                BufferedImage.TYPE_INT_ARGB);
         Hex.setSize(30);
+        Hex.setShowImpact(true);
         Point start = new Point(Hex.getSize() + PADDING, Hex.getSize() + PADDING);
         Point spawn = new Point();
         Point inGrid = new Point(0, 0);
         for (int i = 0; i < heightN; i++) {
-            spawn.move(start.x + (i % 2 == 0 ? 0 : 1) * Hex.getWidth() / 2, start.y + i * Hex.getVertDistance());
+            spawn.move(start.x + (i % 2 == 0 ? 0 : 1) * Hex.getInRadius(), start.y + i * Hex.getVertDistance());
             inGrid.move(0, i);
             hexes.add(new ArrayList<>(widthM));
             for (int j = 0; j < widthM; j++) {
@@ -56,7 +61,6 @@ public class LifeView extends JPanel {
             public void mousePressed(MouseEvent e) {
                 JOptionPane.showMessageDialog(LifeView.this,
                         "Clicked on " + e.getX() + "," + e.getY());
-                SwingUtilities.invokeLater(() -> repaint());
             }
         });
         this.setLayout(new BorderLayout());
@@ -74,10 +78,17 @@ public class LifeView extends JPanel {
     @Override
     protected void paintComponent(final Graphics g) {
         super.paintComponent(g);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
+        graphics.setColor(TRANSPARENT);
+        graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+
         for (ArrayList<Hex> list : hexes) {
             for (Hex h : list) {
-                h.paintHex(g);
+                h.paintHex(image);
             }
         }
+        g.drawImage(image, 0, 0, null);
     }
 }

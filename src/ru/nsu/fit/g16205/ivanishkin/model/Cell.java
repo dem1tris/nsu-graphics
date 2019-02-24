@@ -75,7 +75,7 @@ public class Cell {
      *
      * @param val - rules that will be applied;
      */
-    public void changeRules(final LifeRules val) {
+    public static void changeRules(final LifeRules val) {
         newRules = val;
     }
 }

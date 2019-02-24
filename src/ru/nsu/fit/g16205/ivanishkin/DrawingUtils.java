@@ -3,10 +3,9 @@ package ru.nsu.fit.g16205.ivanishkin;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayDeque;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Deque;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.List;
 
 import static java.lang.Math.abs;
 
@@ -90,46 +89,58 @@ public final class DrawingUtils {
         }
     }
 
-    public static void spanFill(BufferedImage img, Point seed) {
-        class Span {
-            private final int fromX;
-            private final int toX;
-            private final int y;
+    private static class Span {
+        private final int fromX;
+        private final int toX;
+        private final int y;
 
-            private Span(int fromX, int toX, int y) {
-                this.fromX = fromX;
-                this.toX = toX;
-                this.y = y;
-            }
-
-            private Span[] neighbours() {
-                int upY = y + 1;
-                int downY = y - 1;
-                int upFromX = fromX;
-                int downFromX = fromX;
-                int upToX;
-                int downToX;
-                for (int x = fromX; x <= toX; x++) {
-
-                }
-                return new Span[0];
-            }
-
-            private Span[] lower() {
-                return new Span[0];
-            }
+        private Span(int fromX, int toX, int y) {
+            this.fromX = fromX;
+            this.toX = toX;
+            this.y = y;
         }
+
+        private List<Span> neighbours(BufferedImage img) {
+            List<Span> spans = new ArrayList<>();
+            // upper line
+            Point iter = new Point(fromX, y + 1);
+            for (int i = 0; i < 2; i++) {
+                while (iter.x <= this.toX) {
+                    // if connected
+                    if (img.getRGB(iter.x, iter.y) == img.getRGB(this.fromX, this.y)) {
+                        Span s = findSpan(iter, img);
+                        iter.move(s.toX + 1, s.y);
+                        spans.add(s);
+                    } else {
+                        iter.translate(1, 0);
+                    }
+                }
+                // lower line
+                iter.move(fromX, y - 1);
+            }
+            return spans;
+        }
+    }
+
+    public static void spanFill(BufferedImage img, Point seed, Color newColor) {
         seed = seed.getLocation();
         Graphics2D g = img.createGraphics();
-        g.setColor(Color.GREEN);
+        g.setColor(newColor);
         Deque<Span> stack = new ArrayDeque<>();
-        int seedColor;
-        try {
-            //todo: set proper image size
-            seedColor = img.getRGB(seed.x, seed.y);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return;
+
+        stack.push(findSpan(seed, img));
+
+        while (!stack.isEmpty()) {
+            Span span = stack.pop();
+            stack.addAll(span.neighbours(img));
+            g.drawLine(span.fromX, span.y, span.toX, span.y);
         }
+    }
+
+    private static Span findSpan(Point seed, BufferedImage img) {
+        seed = seed.getLocation();
+
+        int seedColor = img.getRGB(seed.x, seed.y);
         int y = seed.y;
         int fromX = seed.x;
         int toX = seed.x;
@@ -137,43 +148,15 @@ public final class DrawingUtils {
         for (int x = seed.x; x >= 0 && x < img.getWidth(); x--) {
             fromX = x;
             if (seedColor != img.getRGB(x - 1, y)) {
-                System.out.println("from " + seedColor + " " + img.getRGB(x, y));
-                System.out.println("" + x + " " + y);
                 break;
             }
         }
         for (int x = seed.x; x >= 0 && x < img.getWidth(); x++) {
             toX = x;
             if (seedColor != img.getRGB(x + 1, y)) {
-                System.out.println("to " + seedColor + " " + img.getRGB(x, y));
-                System.out.println("" + x + " " + y);
                 break;
             }
         }
-
-        stack.push(new Span(fromX, toX, y));
-
-        while (!stack.isEmpty()) {
-            Span span = stack.pop();
-            g.drawLine(span.fromX, span.y, span.toX, span.y);
-            Arrays.stream(span.neighbours()).forEach(stack::push);
-        }
+        return new Span(fromX, toX, y);
     }
-
-
-
-    // for (int x = x1; x <= x2; x++) {
-    //            if (swappedAxes) { //todo: draw lines, not dots
-    //                //noinspection SuspiciousNameCombination
-    //                g.drawLine(y, x, y, x);
-    //            } else {
-    //                g.drawLine(x, y, x, y);
-    //            }
-    //            err += deltaErr;
-    //            if (2 * err >= deltaX) { // err >= 0.5 * deltaX
-    //                y += directionY;
-    //                err -= deltaX;
-    //            }
-    //        }
-
 }

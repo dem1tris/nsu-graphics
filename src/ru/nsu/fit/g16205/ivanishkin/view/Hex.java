@@ -25,6 +25,11 @@ public class Hex {
     private static boolean showImpact = false;
 
     private Point center;
+
+    public Point getPlaceInGrid() {
+        return placeInGrid;
+    }
+
     private Point placeInGrid;
     private Point[] corners = new Point[NCORNERS];
 
@@ -33,7 +38,6 @@ public class Hex {
     }
 
     public static void setSize(int size) {
-
         Hex.size = size;
         Hex.height = 2 * size;
         Hex.inRadius = (int) round(size * sqrt(3) / 2);
@@ -65,7 +69,7 @@ public class Hex {
     }
 
     public void fill(BufferedImage img) {
-        spanFill(img, center);
+        spanFill(img, center, Color.GREEN);
     }
 
     public void drawImpact(BufferedImage img) {
@@ -73,8 +77,8 @@ public class Hex {
             Graphics2D g = img.createGraphics();
             //todo: draw impact
             g.setColor(Color.GRAY);
-            g.setFont(new Font("Arial", Font.BOLD, inRadius));
-            g.drawString("i", center.x, center.y);
+            g.setFont(new Font("Arial", Font.BOLD, 12));
+            g.drawString("" + placeInGrid.y + ", " + placeInGrid.x, center.x, (int) (center.y));
         }
     }
 

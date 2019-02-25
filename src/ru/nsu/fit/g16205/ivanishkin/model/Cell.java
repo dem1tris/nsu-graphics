@@ -3,6 +3,10 @@ package ru.nsu.fit.g16205.ivanishkin.model;
 import java.util.List;
 
 public class Cell {
+    public static LifeRules getRules() {
+        return rules;
+    }
+
     private static LifeRules rules = LifeRules.DEFAULT;
     private static LifeRules newRules = LifeRules.DEFAULT;
 

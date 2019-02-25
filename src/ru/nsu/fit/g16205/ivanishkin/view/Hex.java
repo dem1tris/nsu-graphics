@@ -14,7 +14,7 @@ public class Hex {
     private int myInRadius;
     private int myVertDistance;
     private Point center;
-    private BufferedImage paintedOn;
+    private boolean valid = false;
 
     private static final int NCORNERS = 6;
     private static final String FONT_NAME = "Arial";
@@ -24,6 +24,7 @@ public class Hex {
     private static int horDistance;
     private static int height;
     private static boolean showImpact = false;
+    //private static boolean stateChanged = true;
     private static Font font = new Font(FONT_NAME, Font.BOLD, size);
 
     public Point getPlaceInGrid() {
@@ -50,6 +51,9 @@ public class Hex {
         showImpact = val;
     }
 
+    public static boolean needShowImpact() {
+        return showImpact;
+    }
 
     public Hex(Point center, Point placeInGrid) {
         this.mySize = size;
@@ -61,12 +65,12 @@ public class Hex {
     }
 
     public void paintHex(BufferedImage img) {
-        if (paintedOn != img) {
+        if (!valid) {
             updateSize();
             paintBorder(img);
             fill(img);
             drawImpact(img);
-            paintedOn = img;
+            valid = true;
         }
     }
 
@@ -99,6 +103,7 @@ public class Hex {
 
     private void updateSize() {
         if (mySize != Hex.size) {
+            //stateChanged = true;
             int deltaSize = Hex.size - mySize;
             int deltaRadius = Hex.inRadius - myInRadius;
             int deltaY = Hex.vertDistance - myVertDistance;
@@ -128,10 +133,10 @@ public class Hex {
             }
 
         }
-//        for (Point p : corners) {
-//            System.out.print("(" + p.x + ", " + p.y + ") ");
-//        }
-//        System.out.println();
+    }
+
+    public void invalidate() {
+        valid = false;
     }
 
     public static int getSize() {

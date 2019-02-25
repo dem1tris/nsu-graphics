@@ -11,12 +11,12 @@ public class LifeRules {
         public static final double BIRTH_BEGIN_DEFAULT = 2.3;
         public static final double BIRTH_END_DEFAULT = 2.9;
 
-        private double FST_IMPACT;
-        private double SND_IMPACT;
-        private double LIVE_BEGIN;
-        private double LIVE_END;
-        private double BIRTH_BEGIN;
-        private double BIRTH_END;
+        private Double FST_IMPACT;
+        private Double SND_IMPACT;
+        private Double LIVE_BEGIN;
+        private Double LIVE_END;
+        private Double BIRTH_BEGIN;
+        private Double BIRTH_END;
 
         public LifeRulesBuilder withLiveEnd(double val) {
             this.LIVE_END = val;

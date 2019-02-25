@@ -2,16 +2,13 @@ package ru.nsu.fit.g16205.ivanishkin;
 
 import ru.nsu.cg.MainFrame;
 import ru.nsu.fit.g16205.ivanishkin.view.LifeView;
+import ru.nsu.fit.g16205.ivanishkin.view.SettingsDialog;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.text.ParseException;
-import java.util.Arrays;
 
 /**
  * Main window class
@@ -43,10 +40,14 @@ public class LifeMainWindow extends MainFrame {
                     KeyEvent.VK_A, "About.gif", "onAbout");
             addToolBarButton("Help/About...");
 
+            //todo: vsb troubles
+            JScrollPane scrollPane = new JScrollPane(lifeView,
+                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            scrollPane.setPreferredSize(new Dimension(500, 500));
 
 
-
-            add(lifeView);
+            add(scrollPane);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -80,15 +81,19 @@ public class LifeMainWindow extends MainFrame {
                 }
             }
         });
-        JOptionPane.showOptionDialog(
+        SettingsDialog dialog = new SettingsDialog(() -> lifeView.refreshField());
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        /*JOptionPane.showOptionDialog(
                 this,
                 "Choose settings",
-                "Settings",
+                "SettingsDialog",
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,
                 Arrays.asList(field, new JCheckBox("check")).toArray(),
-                null);
+                null);*/
     }
 
     /**

@@ -8,8 +8,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collection;
 
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
+import static ru.nsu.fit.g16205.ivanishkin.DrawingUtils.spanFill;
 
 /**
  * Component which draws two diagonal lines and reacts on mouse clicks
@@ -41,11 +43,21 @@ public class LifeView extends JPanel {
 
     private void initImage() {
         image = new BufferedImage(
-                2 * PADDING + (widthM + 2) * Hex.getHorDistance(),
-                2 * PADDING + (heightN + 2) * Hex.getVertDistance(),
+                2 * PADDING + (int) ceil((widthM + 0.5) * Hex.getHorDistance()) + 1,
+                2 * PADDING + (heightN - 1) * Hex.getVertDistance() + Hex.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);
+        setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
         Graphics2D graphics = image.createGraphics();
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+    }
+
+    public void refreshField() {
+        Graphics2D g = image.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+        g.setColor(TRANSPARENT);
+        g.fillRect(0,0,image.getWidth(), image.getHeight());
+        hexes.stream().flatMap(Collection::stream).forEach(Hex::invalidate);
+        repaint();
     }
 
     /**
@@ -98,7 +110,6 @@ public class LifeView extends JPanel {
                 h.paintHex(image);
             }
         }
-        System.out.println(g.getClipBounds());
         g.drawImage(image, 0, 0, null);
     }
 

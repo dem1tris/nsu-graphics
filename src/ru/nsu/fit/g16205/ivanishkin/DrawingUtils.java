@@ -102,20 +102,20 @@ public final class DrawingUtils {
 
         private List<Span> neighbours(BufferedImage img) {
             List<Span> spans = new ArrayList<>();
-            // upper line
+            // down
             Point iter = new Point(fromX, y + 1);
             for (int i = 0; i < 2; i++) {
                 while (iter.x <= this.toX) {
                     // if connected
                     if (img.getRGB(iter.x, iter.y) == img.getRGB(this.fromX, this.y)) {
                         Span s = findSpan(iter, img);
-                        iter.move(s.toX + 1, s.y);
                         spans.add(s);
+                        iter.move(s.toX + 1, s.y);
                     } else {
                         iter.translate(1, 0);
                     }
                 }
-                // lower line
+                // up
                 iter.move(fromX, y - 1);
             }
             return spans;
@@ -124,6 +124,7 @@ public final class DrawingUtils {
 
     public static void spanFill(BufferedImage img, Point seed, Color newColor) {
         seed = seed.getLocation();
+        int oldColor = img.getRGB(seed.x, seed.y);
         Graphics2D g = img.createGraphics();
         g.setColor(newColor);
         Deque<Span> stack = new ArrayDeque<>();
@@ -132,8 +133,10 @@ public final class DrawingUtils {
 
         while (!stack.isEmpty()) {
             Span span = stack.pop();
-            stack.addAll(span.neighbours(img));
-            g.drawLine(span.fromX, span.y, span.toX, span.y);
+            if (img.getRGB(span.fromX, span.y) == oldColor) {
+                stack.addAll(span.neighbours(img));
+                g.drawLine(span.fromX, span.y, span.toX, span.y);
+            }
         }
     }
 

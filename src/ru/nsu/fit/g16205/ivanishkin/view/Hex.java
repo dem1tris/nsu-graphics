@@ -2,8 +2,6 @@ package ru.nsu.fit.g16205.ivanishkin.view;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 import static java.lang.Math.round;
 import static java.lang.Math.sqrt;
@@ -11,20 +9,22 @@ import static ru.nsu.fit.g16205.ivanishkin.DrawingUtils.drawLine;
 import static ru.nsu.fit.g16205.ivanishkin.DrawingUtils.spanFill;
 
 public class Hex {
-    private static int NCORNERS = 6;
 
     private int mySize;
     private int myInRadius;
     private int myVertDistance;
+    private Point center;
+    private BufferedImage paintedOn;
 
-    private static int size = 20;
+    private static final int NCORNERS = 6;
+    private static final String FONT_NAME = "Arial";
+    private static int size = 30;
     private static int inRadius;
     private static int vertDistance;
     private static int horDistance;
     private static int height;
     private static boolean showImpact = false;
-
-    private Point center;
+    private static Font font = new Font(FONT_NAME, Font.BOLD, size);
 
     public Point getPlaceInGrid() {
         return placeInGrid;
@@ -40,11 +40,10 @@ public class Hex {
     public static void setSize(int size) {
         Hex.size = size;
         Hex.height = 2 * size;
+        Hex.vertDistance = (int) (2 * size * 3. / 4);
         Hex.inRadius = (int) round(size * sqrt(3) / 2);
         Hex.horDistance = 2 * Hex.inRadius;
-        System.out.println("horDistance = " + horDistance);
-        Hex.vertDistance = (int) (height * 3. / 4);
-        System.out.println("size = " + size);
+        Hex.font = new Font(FONT_NAME, Font.BOLD, size);
     }
 
     public static void setShowImpact(boolean val) {
@@ -62,10 +61,13 @@ public class Hex {
     }
 
     public void paintHex(BufferedImage img) {
-        updateSize();
-        paintBorder(img);
-        fill(img);
-        drawImpact(img);
+        if (paintedOn != img) {
+            updateSize();
+            paintBorder(img);
+            fill(img);
+            drawImpact(img);
+            paintedOn = img;
+        }
     }
 
     public void fill(BufferedImage img) {
@@ -74,11 +76,15 @@ public class Hex {
 
     public void drawImpact(BufferedImage img) {
         if (showImpact) {
+            String str = "" + placeInGrid.y + "," + placeInGrid.x;
             Graphics2D g = img.createGraphics();
             //todo: draw impact
             g.setColor(Color.GRAY);
-            g.setFont(new Font("Arial", Font.BOLD, 12));
-            g.drawString("" + placeInGrid.y + ", " + placeInGrid.x, center.x, (int) (center.y));
+            g.setFont(font);
+            FontMetrics metr = g.getFontMetrics(font);
+            g.setClip(corners[3].x + 1, corners[3].y, 2 * inRadius - 1, size);
+            g.drawString(str, center.x - metr.stringWidth(str) / 2.f,
+                    center.y + metr.getAscent() - metr.getHeight() / 2.f);
         }
     }
 
@@ -145,6 +151,6 @@ public class Hex {
     }
 
     public static int getVertDistance() {
-        return (int) vertDistance;
+        return vertDistance;
     }
 }

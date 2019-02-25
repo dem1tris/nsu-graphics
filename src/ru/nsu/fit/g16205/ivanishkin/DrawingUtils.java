@@ -105,14 +105,16 @@ public final class DrawingUtils {
             // down
             Point iter = new Point(fromX, y + 1);
             for (int i = 0; i < 2; i++) {
-                while (iter.x <= this.toX) {
-                    // if connected
-                    if (img.getRGB(iter.x, iter.y) == img.getRGB(this.fromX, this.y)) {
-                        Span s = findSpan(iter, img);
-                        spans.add(s);
-                        iter.move(s.toX + 1, s.y);
-                    } else {
-                        iter.translate(1, 0);
+                if (0 <= iter.y && iter.y < img.getHeight()) {
+                    while (iter.x <= this.toX) {
+                        // if connected
+                        if (img.getRGB(iter.x, iter.y) == img.getRGB(this.fromX, this.y)) {
+                            Span s = findSpan(iter, img);
+                            spans.add(s);
+                            iter.move(s.toX + 1, s.y);
+                        } else {
+                            iter.translate(1, 0);
+                        }
                     }
                 }
                 // up
@@ -125,6 +127,9 @@ public final class DrawingUtils {
     public static void spanFill(BufferedImage img, Point seed, Color newColor) {
         seed = seed.getLocation();
         int oldColor = img.getRGB(seed.x, seed.y);
+        if (oldColor == newColor.getRGB()) {
+            return;
+        }
         Graphics2D g = img.createGraphics();
         g.setColor(newColor);
         Deque<Span> stack = new ArrayDeque<>();
@@ -148,13 +153,13 @@ public final class DrawingUtils {
         int fromX = seed.x;
         int toX = seed.x;
 
-        for (int x = seed.x; x >= 0 && x < img.getWidth(); x--) {
+        for (int x = seed.x; x - 1 >= 0 && x < img.getWidth(); x--) {
             fromX = x;
             if (seedColor != img.getRGB(x - 1, y)) {
                 break;
             }
         }
-        for (int x = seed.x; x >= 0 && x < img.getWidth(); x++) {
+        for (int x = seed.x; x >= 0 && x + 1 < img.getWidth(); x++) {
             toX = x;
             if (seedColor != img.getRGB(x + 1, y)) {
                 break;

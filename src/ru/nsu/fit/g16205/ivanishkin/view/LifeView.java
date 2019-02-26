@@ -1,6 +1,10 @@
 package ru.nsu.fit.g16205.ivanishkin.view;
 
 import ru.nsu.fit.g16205.ivanishkin.Utils;
+import ru.nsu.fit.g16205.ivanishkin.model.Cell;
+import ru.nsu.fit.g16205.ivanishkin.model.LifeModel;
+import ru.nsu.fit.g16205.ivanishkin.observer.Observable;
+import ru.nsu.fit.g16205.ivanishkin.observer.Observer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,54 +12,96 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
-import static java.lang.Math.*;
-import static ru.nsu.fit.g16205.ivanishkin.DrawingUtils.spanFill;
+import static java.lang.Math.ceil;
 
 /**
- * Component which draws two diagonal lines and reacts on mouse clicks
+ * Component which draws game field and reacts on mouse clicks
  *
  * @author Dmitry Ivanishkin
  */
-public class LifeView extends JPanel {
+public class LifeView extends JPanel implements Observer {
     private static final int PADDING = 10;
     private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
-    private static final int lineStroke = 1;
-    private static final double SQRT3 = sqrt(3);
-
-    private BufferedImage image;
-    private int widthM = 15;
-    private int heightN = 15;
+    private BasicStroke lineStroke = new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    private int size = Hex.getSize();
+    private LifeModel model;
+    private boolean xorClickMode = true;
+    private BufferedImage gridImage;
+    private BufferedImage impactImage;
+    private int widthM;
+    private int heightN;
 
     private ArrayList<ArrayList<Hex>> hexes = new ArrayList<>(heightN);
 
 
-    public void updateSize(int k) {
-        Graphics2D graphics = image.createGraphics();
-        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
-        graphics.setColor(TRANSPARENT);
-        graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
-        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+    private Hex getHex(Point p) {
+        return hexes.get(p.y).get(p.x);
+    }
+
+    public boolean isXorClickMode() {
+        return xorClickMode;
+    }
+
+    public void setXorClickMode(boolean xorClickMode) {
+        this.xorClickMode = xorClickMode;
+    }
+
+    public int getWidthM() {
+        return widthM;
+    }
+
+    public void setWidthM(int widthM) {
+        this.widthM = widthM;
+    }
+
+    public int getHeightN() {
+        return heightN;
+    }
+
+    public void setHeightN(int heightN) {
+        this.heightN = heightN;
+    }
+
+    public int getLineStroke() {
+        return (int) lineStroke.getLineWidth();
+    }
+
+    public void setLineStroke(int width) {
+        this.lineStroke = new BasicStroke(width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    }
+
+    public int getCellSize() {
+        return Hex.getSize();
+    }
+
+    public void updateCellSize(int k) {
         Hex.setSize(k);
         initImage();
     }
 
     private void initImage() {
-        image = new BufferedImage(
-                2 * PADDING + (int) ceil((widthM + 0.5) * Hex.getHorDistance()) + 1,
-                2 * PADDING + (heightN - 1) * Hex.getVertDistance() + Hex.getHeight(),
-                BufferedImage.TYPE_INT_ARGB);
-        setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
-        Graphics2D graphics = image.createGraphics();
-        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+        int width = 2 * PADDING + (int) ceil((widthM + 0.5) * Hex.getHorDistance()) + 1;
+        int height = 2 * PADDING + (heightN - 1) * Hex.getVertDistance() + Hex.getHeight();
+        gridImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        impactImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        setPreferredSize(new Dimension(width, height));
     }
 
     public void refreshField() {
-        Graphics2D g = image.createGraphics();
+        Graphics2D g = gridImage.createGraphics();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
         g.setColor(TRANSPARENT);
-        g.fillRect(0,0,image.getWidth(), image.getHeight());
+        g.fillRect(0, 0, gridImage.getWidth(), gridImage.getHeight());
+
+        g = impactImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+        g.setColor(TRANSPARENT);
+        g.fillRect(0, 0, impactImage.getWidth(), impactImage.getHeight());
+
         hexes.stream().flatMap(Collection::stream).forEach(Hex::invalidate);
         repaint();
     }
@@ -63,12 +109,16 @@ public class LifeView extends JPanel {
     /**
      * Constructs object
      */
-    public LifeView() {
+    public LifeView(LifeModel model) {
+        System.out.println(getBackground());
+        this.model = model;
+        model.register(this);
+        widthM = model.getWidthM();
+        heightN = model.getHeightN();
         //todo: check big grid sizes startup troubles
         //todo: edit only visible part of image
         initImage();
         Hex.setShowImpact(true);
-        //todo: set proper image size
         Point start = new Point(Hex.getInRadius() + PADDING, Hex.getSize() + PADDING);
         Point spawnCenter = new Point();
         Point inGridCoord = new Point(0, 0);
@@ -77,20 +127,25 @@ public class LifeView extends JPanel {
             inGridCoord.move(0, i);
             hexes.add(new ArrayList<>(widthM));
             for (int j = 0; j < widthM; j++) {
-                hexes.get(i).add(new Hex(spawnCenter, inGridCoord));
+                hexes.get(i).add(new Hex(spawnCenter, model.getCell(inGridCoord)));
                 spawnCenter.translate(Hex.getHorDistance(), 0);
                 inGridCoord.translate(1, 0);
             }
-            System.err.println("n " + i);
         }
 
-
+        //todo: double-click in Replace mode
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                Point p = Utils.notNullOrElse(getSelectedHexagon(e.getX(), e.getY()), new Point(-1, -1));
-                JOptionPane.showMessageDialog(LifeView.this,
-                        "Clicked on " + p.x + ", " + p.y + "\nCoords: " + e.getX() + ", " + e.getY());
+                Point clicked = getSelectedHexagon(e.getX(), e.getY());
+                if (Objects.nonNull(clicked)) {
+                    if (xorClickMode) {
+                        model.changeAlive(clicked);
+                    } else {
+                        System.err.println(clicked);
+                        model.setAlive(clicked, true);
+                    }
+                }
             }
         });
         this.setLayout(new BorderLayout());
@@ -104,16 +159,25 @@ public class LifeView extends JPanel {
     @Override
     protected void paintComponent(final Graphics g) {
         super.paintComponent(g);
-
         for (ArrayList<Hex> list : hexes) {
             for (Hex h : list) {
-                h.paintHex(image);
+                h.paintHex(gridImage, impactImage, lineStroke);
             }
         }
-        g.drawImage(image, 0, 0, null);
+        //todo: this or null?
+        g.drawImage(gridImage, 0, 0, this);
+        g.drawImage(impactImage, 0, 0, this);
     }
 
     private Point getSelectedHexagon(int x, int y) {
+        try {
+            if (gridImage.getRGB(x, y) == Color.BLACK.getRGB()) {
+                return null;
+            }
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+
         x -= PADDING;
         y -= PADDING;
         int halfWidth = Hex.getInRadius();
@@ -161,5 +225,13 @@ public class LifeView extends JPanel {
         } catch (IndexOutOfBoundsException e) {
             return null;
         }
+    }
+
+    @Override
+    public void dispatchUpdates(Observable o, Object[] updated) {
+        Arrays.stream(updated)
+                .map(it -> (Cell) it)
+                .forEach(it -> getHex(it.place()).invalidate());
+        repaint();
     }
 }

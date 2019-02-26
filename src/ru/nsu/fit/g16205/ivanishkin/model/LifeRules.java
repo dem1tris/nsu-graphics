@@ -70,17 +70,17 @@ public class LifeRules {
 
     public LifeRules(double fstImpact,
                      double sndImpact,
-                     double liveBegin,
-                     double liveEnd,
+                     double lifeBegin,
+                     double lifeEnd,
                      double birthBegin,
                      double birthEnd) {
-        if (!(liveBegin <= birthBegin && birthBegin <= birthEnd && birthEnd <= liveEnd)) {
-            throw new IllegalArgumentException("Parameters should satisfy liveBegin <= birthBegin <= birthEnd <= liveEnd");
+        if (!(lifeBegin <= birthBegin && birthBegin <= birthEnd && birthEnd <= lifeEnd)) {
+            throw new IllegalArgumentException("Parameters should satisfy lifeBegin <= birthBegin <= birthEnd <= lifeEnd");
         }
         FST_IMPACT = fstImpact;
         SND_IMPACT = sndImpact;
-        LIVE_BEGIN = liveBegin;
-        LIVE_END = liveEnd;
+        LIVE_BEGIN = lifeBegin;
+        LIVE_END = lifeEnd;
         BIRTH_BEGIN = birthBegin;
         BIRTH_END = birthEnd;
     }

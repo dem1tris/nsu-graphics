@@ -1,6 +1,7 @@
 package ru.nsu.fit.g16205.ivanishkin;
 
 import ru.nsu.cg.MainFrame;
+import ru.nsu.fit.g16205.ivanishkin.model.LifeModel;
 import ru.nsu.fit.g16205.ivanishkin.view.LifeView;
 import ru.nsu.fit.g16205.ivanishkin.view.SettingsDialog;
 
@@ -20,7 +21,7 @@ public class LifeMainWindow extends MainFrame {
      * Default constructor to create main window
      */
 
-    private LifeView lifeView = new LifeView();
+    private LifeView lifeView;
     public LifeMainWindow() {
         super(600, 400, "Life application");
 
@@ -33,6 +34,7 @@ public class LifeMainWindow extends MainFrame {
             addSubMenu("Modify", KeyEvent.VK_M);
             addMenuItem("Modify/Settings", "Change rules and view", KeyEvent.VK_S, "Settings.png","onSettings");
             addToolBarButton("Modify/Settings");
+//            addMenuItem()
             addToolBarSeparator();
 
             addSubMenu("Help", KeyEvent.VK_H);
@@ -40,12 +42,12 @@ public class LifeMainWindow extends MainFrame {
                     KeyEvent.VK_A, "About.gif", "onAbout");
             addToolBarButton("Help/About...");
 
-            //todo: vsb troubles
+            //todo: magic constants
+            //todo: update scrollbars immediately after cell size changed (repaint scrollPane?)
+            lifeView = new LifeView(new LifeModel(15, 10));
             JScrollPane scrollPane = new JScrollPane(lifeView,
                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-            scrollPane.setPreferredSize(new Dimension(500, 500));
-
 
             add(scrollPane);
         } catch (Exception e) {
@@ -54,46 +56,10 @@ public class LifeMainWindow extends MainFrame {
     }
 
     public void onSettings() {
-        JTextField field = new JTextField(3);
-        field.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                change();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                change();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                change();
-            }
-
-            private void change() {
-                try{
-                    int val = Integer.parseInt(field.getText());
-                    lifeView.updateSize(val);
-                    lifeView.repaint();
-                } catch (NumberFormatException ex) {
-
-                }
-            }
-        });
-        SettingsDialog dialog = new SettingsDialog(() -> lifeView.refreshField());
+        SettingsDialog dialog = new SettingsDialog(lifeView);
         dialog.pack();
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
-        /*JOptionPane.showOptionDialog(
-                this,
-                "Choose settings",
-                "SettingsDialog",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                Arrays.asList(field, new JCheckBox("check")).toArray(),
-                null);*/
     }
 
     /**

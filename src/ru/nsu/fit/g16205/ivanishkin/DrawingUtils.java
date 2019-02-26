@@ -10,8 +10,6 @@ import java.util.List;
 import static java.lang.Math.abs;
 
 public final class DrawingUtils {
-    private static final Stroke ONE_PIXEL_STROKE = new BasicStroke(1);
-
     private DrawingUtils() {
     }
 
@@ -31,7 +29,8 @@ public final class DrawingUtils {
     @SuppressWarnings({"ConstantConditions", "SuspiciousNameCombination"})
     public static void drawLine(Graphics g, int x1, int y1, int x2, int y2) {
         try {
-            if (!((Graphics2D) g).getStroke().equals(ONE_PIXEL_STROKE)) {
+            Graphics2D gr = (Graphics2D) g;
+            if (((BasicStroke) gr.getStroke()).getLineWidth() != 1.) {
                 System.err.println("Library drawing method used");
                 g.drawLine(x1, y1, x2, y2);
                 return;
@@ -125,6 +124,9 @@ public final class DrawingUtils {
     }
 
     public static void spanFill(BufferedImage img, Point seed, Color newColor) {
+        if (newColor.getAlpha() == 0) {
+            throw new IllegalArgumentException("Filling with transparent color cause no effect");
+        }
         seed = seed.getLocation();
         int oldColor = img.getRGB(seed.x, seed.y);
         if (oldColor == newColor.getRGB()) {

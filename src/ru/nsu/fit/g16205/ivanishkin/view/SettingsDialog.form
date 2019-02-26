@@ -177,12 +177,12 @@
             <properties/>
             <border type="etched" title="Mode"/>
             <children>
-              <component id="67549" class="javax.swing.JRadioButton" binding="XORRadioButton" default-binding="true">
+              <component id="67549" class="javax.swing.JRadioButton" binding="xorRadioButton" default-binding="true">
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <selected value="true"/>
+                  <selected value="false"/>
                   <text value="XOR"/>
                 </properties>
               </component>
@@ -334,11 +334,4 @@
       </grid>
     </children>
   </grid>
-  <buttonGroups>
-    <group name="modeGroup">
-      <member id="67549"/>
-      <member id="67549"/>
-      <member id="4d15a"/>
-    </group>
-  </buttonGroups>
 </form>

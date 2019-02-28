@@ -95,7 +95,7 @@ public class Hex {
     }
 
     public void drawImpact(BufferedImage img) {
-        if (showImpact) {
+        if (showImpact && size >= 6) {
             String str;
             Graphics2D g = img.createGraphics();
 

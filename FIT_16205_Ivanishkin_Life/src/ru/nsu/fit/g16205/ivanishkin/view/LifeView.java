@@ -16,6 +16,7 @@ import java.util.Timer;
 import java.util.*;
 
 import static java.lang.Math.ceil;
+import static ru.nsu.fit.g16205.ivanishkin.utils.Utils.notNullOrElse;
 
 /**
  * Component which draws game field and reacts on mouse clicks
@@ -114,6 +115,7 @@ public class LifeView extends JPanel implements Observer {
     public void updateCellSize(int k) {
         Hex.setSize(k);
         initImage();
+        refreshField();
     }
 
     private void initImage() {
@@ -136,6 +138,7 @@ public class LifeView extends JPanel implements Observer {
         g.fillRect(0, 0, impactImage.getWidth(), impactImage.getHeight());
 
         hexes.stream().flatMap(Collection::stream).forEach(Hex::invalidate);
+        notNullOrElse(SwingUtilities.getAncestorOfClass(JScrollPane.class, this), this).revalidate();
         repaint();
     }
 
@@ -144,6 +147,11 @@ public class LifeView extends JPanel implements Observer {
     }
 
     public void setModel(LifeModel model) {
+        boolean restart = false;
+        if (timer != null) {
+            restart = true;
+            stop();
+        }
         LifeModel oldModel = this.model;
         this.model = model;
         widthM = model.getWidthM();
@@ -171,6 +179,10 @@ public class LifeView extends JPanel implements Observer {
             oldModel.getAlivePlaces().stream()
                     .filter(it -> it.x < p.x && it.y < p.y)
                     .forEach(it -> model.setAlive(it, true));
+        }
+        refreshField();
+        if (restart) {
+            start();
         }
     }
 
@@ -224,7 +236,6 @@ public class LifeView extends JPanel implements Observer {
         this.lineStroke = new BasicStroke(config.border, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
         setModel(new LifeModel(config));
         initImage();
-        SwingUtilities.getAncestorOfClass(JScrollPane.class, this).revalidate();
         refreshField();
     }
 
@@ -245,7 +256,6 @@ public class LifeView extends JPanel implements Observer {
         //todo: this or null?
         g.drawImage(gridImage, 0, 0, this);
         g.drawImage(impactImage, 0, 0, this);
-        requestFocusInWindow();
     }
 
     private Point getSelectedHexagon(int x, int y) {

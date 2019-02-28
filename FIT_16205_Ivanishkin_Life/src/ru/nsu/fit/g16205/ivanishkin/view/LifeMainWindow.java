@@ -61,6 +61,8 @@ public class LifeMainWindow extends AdvancedMainFrame {
             JScrollPane scrollPane = new JScrollPane(lifeView,
                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            scrollPane.getVerticalScrollBar().setUnitIncrement(6);
+            scrollPane.getHorizontalScrollBar().setUnitIncrement(6);
 
             add(scrollPane);
             statusBar.setPreferredSize(new Dimension(scrollPane.getWidth(), STATUSBAR_HEIGHT));
@@ -303,7 +305,7 @@ public class LifeMainWindow extends AdvancedMainFrame {
         if (!lifeView.getModel().isSaved()) {
             int res = JOptionPane.showConfirmDialog(this,
                     "Would you like to save current configuration?",
-                    "Exiting",
+                    "Unsaved configuration",
                     JOptionPane.YES_NO_CANCEL_OPTION);
             if (res == JOptionPane.YES_OPTION) {
                 return save();

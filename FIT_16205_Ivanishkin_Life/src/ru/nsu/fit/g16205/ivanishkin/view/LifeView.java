@@ -144,6 +144,7 @@ public class LifeView extends JPanel implements Observer {
     }
 
     public void setModel(LifeModel model) {
+        LifeModel oldModel = this.model;
         this.model = model;
         widthM = model.getWidthM();
         heightN = model.getHeightN();
@@ -165,6 +166,12 @@ public class LifeView extends JPanel implements Observer {
             }
         }
         model.register(this);
+        Point p = new Point(model.getWidthM(), model.getHeightN());
+        if (oldModel != null) {
+            oldModel.getAlivePlaces().stream()
+                    .filter(it -> it.x < p.x && it.y < p.y)
+                    .forEach(it -> model.setAlive(it, true));
+        }
     }
 
     /**

@@ -224,6 +224,9 @@ public class LifeMainWindow extends AdvancedMainFrame {
     }
 
     public void onOpen() {
+        if (!saveProposal()) {
+            return;
+        }
         JFileChooser chooser = new JFileChooser();
         File dir = new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Life_Data/");
         chooser.setCurrentDirectory(dir);
@@ -296,22 +299,27 @@ public class LifeMainWindow extends AdvancedMainFrame {
         return false;
     }
 
-    /**
-     * File/Exit - exits application
-     */
-    public void onExit() {
+    boolean saveProposal() {
         if (!lifeView.getModel().isSaved()) {
             int res = JOptionPane.showConfirmDialog(this,
                     "Would you like to save current configuration?",
                     "Exiting",
                     JOptionPane.YES_NO_CANCEL_OPTION);
             if (res == JOptionPane.YES_OPTION) {
-                if(!save()) {
-                    return;
-                }
+                return save();
             } else if (res == JOptionPane.CLOSED_OPTION || res == JOptionPane.CANCEL_OPTION) {
-                return;
+                return false;
             }
+        }
+        return true;
+    }
+
+    /**
+     * File/Exit - exits application
+     */
+    public void onExit() {
+        if (!saveProposal()) {
+            return;
         }
         dispose();
         System.exit(0);

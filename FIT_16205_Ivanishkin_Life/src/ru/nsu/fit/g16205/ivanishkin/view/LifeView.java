@@ -10,7 +10,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.Timer;
 import java.util.*;
@@ -88,16 +87,8 @@ public class LifeView extends JPanel implements Observer {
         return widthM;
     }
 
-    public void setWidthM(int widthM) {
-        this.widthM = widthM;
-    }
-
     public int getHeightN() {
         return heightN;
-    }
-
-    public void setHeightN(int heightN) {
-        this.heightN = heightN;
     }
 
     public int getLineStrokeWidth() {
@@ -105,17 +96,40 @@ public class LifeView extends JPanel implements Observer {
     }
 
     public void setLineStroke(int width) {
+        boolean restart = false;
+        if (timer != null) {
+            restart = true;
+            stop();
+        }
+        int oldCellSize = getCellSize();
         this.lineStroke = new BasicStroke(width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+        updateCellSize(oldCellSize);
+        if (restart) {
+            start();
+        }
     }
 
     public int getCellSize() {
-        return Hex.getSize();
+        return Hex.getSize() - (int) (lineStroke.getLineWidth() / 2);
     }
 
+    /**
+     * Sets Hex's size considering line width
+     * @param k - interior cell size
+     */
+
     public void updateCellSize(int k) {
-        Hex.setSize(k);
+        boolean restart = false;
+        if (timer != null) {
+            restart = true;
+            stop();
+        }
+        Hex.setSize(k + (int) (lineStroke.getLineWidth() / 2));
         initImage();
         refreshField();
+        if (restart) {
+            start();
+        }
     }
 
     private void initImage() {

@@ -177,7 +177,7 @@ public class SettingsDialog extends JDialog {
         //field
         widthTextField.setText(Integer.toString(view.getWidthM()));
         heightTextField.setText(Integer.toString(view.getHeightN()));
-        cellTextField.setText(Integer.toString(Hex.getSize()));
+        cellTextField.setText(Integer.toString(view.getCellSize()));
         borderTextField.setText(Integer.toString(view.getLineStrokeWidth()));
         delayTextField.setText(Integer.toString(view.getPeriod()));
 

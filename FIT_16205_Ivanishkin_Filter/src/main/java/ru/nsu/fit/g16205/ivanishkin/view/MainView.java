@@ -2,7 +2,6 @@ package ru.nsu.fit.g16205.ivanishkin.view;
 
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
@@ -12,21 +11,20 @@ import java.awt.image.BufferedImage;
  *
  * @author Dmitry Ivanishkin
  */
-public class FilterView extends JPanel {
+public class MainView extends JPanel {
     private static final int PADDING = 20;
     private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
 
-    private BufferedImage original;
-    private BufferedImage before;
-    private BufferedImage after;
+    private OriginalView original = new OriginalView();
+    private ImageView selected = new SelectedView();
+    private ImageView filtered = new ImageView();
 
 
     /**
      * Constructs object
      */
-    public FilterView() {
+    public MainView() {
         setAlignmentX(CENTER_ALIGNMENT);
-        setBorder(new BevelBorder(BevelBorder.RAISED));
         MouseAdapter listener = new MouseAdapter() {
             //todo
         };
@@ -34,17 +32,14 @@ public class FilterView extends JPanel {
         addMouseListener(listener);
         addMouseMotionListener(listener);
 
-        BoxLayout mgr = new BoxLayout(this, BoxLayout.X_AXIS);
-        this.setLayout(mgr);
+        this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+
         add(Box.createHorizontalGlue());
-        OriginalView orig = new OriginalView();
-        add(orig);
-        add(Box.createRigidArea(new Dimension(PADDING,0)));
-        SelectedView bef = new SelectedView();
-        add(bef);
-        add(Box.createRigidArea(new Dimension(PADDING,0)));
-        SelectedView aft = new SelectedView();
-        add(aft);
+        add(original);
+        add(Box.createRigidArea(new Dimension(PADDING, 0)));
+        add(selected);
+        add(Box.createRigidArea(new Dimension(PADDING, 0)));
+        add(filtered);
         add(Box.createHorizontalGlue());
 
     }
@@ -59,5 +54,21 @@ public class FilterView extends JPanel {
     protected void paintComponent(final Graphics g) {
         super.paintComponent(g);
 
+    }
+
+    public void setImage(final BufferedImage img) {
+        original.setImage(img);
+    }
+
+    public OriginalView getOriginal() {
+        return original;
+    }
+
+    public ImageView getSelected() {
+        return selected;
+    }
+
+    public ImageView getFiltered() {
+        return filtered;
     }
 }

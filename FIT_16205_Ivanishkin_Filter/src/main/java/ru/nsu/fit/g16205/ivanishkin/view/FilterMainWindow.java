@@ -1,16 +1,13 @@
 package ru.nsu.fit.g16205.ivanishkin.view;
 
-import ru.nsu.cg.ExtensionFileFilter;
-
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Main window class
@@ -28,7 +25,10 @@ public class FilterMainWindow extends AdvancedMainFrame {
     private final ButtonGroup xorReplaceButtonGroup = new ButtonGroup();
     private final ButtonGroup xorReplaceMenuGroup = new ButtonGroup();
 
-    private FilterView filterView;
+    private final MainView mainView;
+    private final OriginalView original;
+    private final ImageView selected;
+    private final ImageView filtered;
 
     private JMenuItem nextItem;
     private JButton nextButton;
@@ -43,7 +43,10 @@ public class FilterMainWindow extends AdvancedMainFrame {
      * Default constructor to create main window
      */
     public FilterMainWindow() {
-        super(1000, 700, TITLE);
+        super(400, 200, "Untitled - " + TITLE);
+        //todo: size is not changing
+        setSize(1500, 800);
+        repaint();
 
         try {
             this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -54,8 +57,11 @@ public class FilterMainWindow extends AdvancedMainFrame {
                 }
             });
 
-            filterView = new FilterView();
-            JScrollPane scrollPane = new JScrollPane(filterView,
+            mainView = new MainView();
+            original = mainView.getOriginal();
+            selected = mainView.getSelected();
+            filtered = mainView.getFiltered();
+            JScrollPane scrollPane = new JScrollPane(mainView,
                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             scrollPane.getVerticalScrollBar().setUnitIncrement(6);
@@ -66,24 +72,42 @@ public class FilterMainWindow extends AdvancedMainFrame {
             statusBar.setPreferredSize(new Dimension(scrollPane.getWidth(), STATUSBAR_HEIGHT));
 
             addSubMenu("File", KeyEvent.VK_F);
+            addSubMenu("Image", KeyEvent.VK_F);
             addSubMenu("Modify", KeyEvent.VK_M);
             addSubMenu("Action", KeyEvent.VK_M);
             addSubMenu("Help", KeyEvent.VK_H);
 
-            addMenuItem("File/New", "New configuration", KeyEvent.VK_X, null, "onNew");
+            //region File
+            addMenuItem("File/New", "Clear all", KeyEvent.VK_N, "new2.png", "onNew");
             addToolBarButton("File/New");
 
-            addMenuItem("File/Open", "Open configuration", KeyEvent.VK_X, null, "onOpen");
+            addMenuItem("File/Open", "Open file", KeyEvent.VK_O, "open2.png", "onOpen");
             addToolBarButton("File/Open");
 
-            addMenuItem("File/Save", "Save configuration", KeyEvent.VK_X, null, "onSave");
+            addMenuItem("File/Save", "Save file", KeyEvent.VK_S, "save2.png", "onSave");
             addToolBarButton("File/Save");
 
 
-            addMenuItem("File/Exit", "Exit application", KeyEvent.VK_X, null, "onExit");
+            addMenuItem("File/Exit", "Exit application", KeyEvent.VK_X, "exit2.png", "onExit");
             addToolBarButton("File/Exit");
 
             addToolBarSeparator();
+            //endregion
+
+            //region Image
+            bindCheckboxMenuWithToggleButton(
+                    addCheckboxMenuItem("Image/Select", "Select area to edit", "select2.png", "onSelect"),
+                    addToolBarToggleButton("Image/Select")
+            );
+
+            addMenuItem("Image/Copy left", "Copy image to the left", KeyEvent.VK_L, "left2.png", "onLeft");
+            addToolBarButton("Image/Copy left");
+
+            addMenuItem("Image/Copy right", "Copy image to the right", KeyEvent.VK_R, "right2.png", "onRight");
+            addToolBarButton("Image/Copy right");
+
+            addToolBarSeparator();
+            //endregion
 
             impactItem = addCheckboxMenuItem("Modify/Show impact",
                     "Show impact value of each cell", null, "onImpact");
@@ -134,7 +158,7 @@ public class FilterMainWindow extends AdvancedMainFrame {
             addToolBarSeparator();
 
             addMenuItem("Help/About...", "Shows program version and copyright information",
-                    KeyEvent.VK_A, null, "onAbout");
+                    KeyEvent.VK_A, "about2.png", "onAbout");
             addToolBarButton("Help/About...");
 
             addToolBarSeparator();
@@ -143,6 +167,53 @@ public class FilterMainWindow extends AdvancedMainFrame {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void onNew() {
+        mainView.setImage(null);
+        setTitle("Untitled - " + TITLE);
+    }
+
+    public void onOpen() {
+        JFileChooser chooser = new JFileChooser();
+        File dir = new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Filter_Data/");
+        chooser.setCurrentDirectory(dir);
+        //chooser.setFileFilter(new ExtensionFileFilter("txt", "Text files"));
+
+        int ret = chooser.showOpenDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            file = chooser.getSelectedFile();
+            try {
+                mainView.setImage(ImageIO.read(file));
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error while opening file");
+            }
+            setTitle(file.getName() + " - " + TITLE);
+        }
+    }
+
+    public void onSave() {
+        save();
+    }
+
+    /**
+     * File/Exit - exits application
+     */
+    public void onExit() {
+        dispose();
+        System.exit(0);
+    }
+
+    public void onSelect(boolean enabled) {
+        original.setSelectMode(enabled, selected);
+    }
+
+    public void onLeft() {
+        selected.setImage(filtered.getImage());
+    }
+
+    public void onRight() {
+        filtered.setImage(selected.getImage());
     }
 
     public void onRun(boolean enabled) {
@@ -157,7 +228,7 @@ public class FilterMainWindow extends AdvancedMainFrame {
     }
 
     public void onSettings() {
-//        SettingsDialog dialog = new SettingsDialog(filterView);
+//        SettingsDialog dialog = new SettingsDialog(mainView);
 //        dialog.pack();
 //        dialog.setLocationRelativeTo(this);
 //        dialog.setVisible(true);
@@ -183,41 +254,11 @@ public class FilterMainWindow extends AdvancedMainFrame {
     public void onAbout() {
         JOptionPane.showMessageDialog(
                 this,
-                "Life, version 1.0\nCopyright © 2019 Dmitry Ivanishkin, FIT, group 16205\nhttps://github.com/dem1tris/",
-                "About Life",
+                "Filter, version 1.0\nCopyright © 2019 Dmitry Ivanishkin, NSU FIT, group 16205\nhttps://github.com/dem1tris/",
+                "About Filter",
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public void onNew() {
-    }
-
-    public void onOpen() {
-//        if (!saveProposal()) {
-//            return;
-//        }
-//        JFileChooser chooser = new JFileChooser();
-//        File dir = new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Life_Data/");
-//        chooser.setCurrentDirectory(dir);
-//        chooser.setFileFilter(new ExtensionFileFilter("txt", "Text files"));
-//
-//        int ret = chooser.showOpenDialog(this);
-//        if (ret == JFileChooser.APPROVE_OPTION) {
-//            file = chooser.getSelectedFile();
-//            Config config;
-//            try {
-//                config = Config.parseFile(file);
-//                filterView.configure(config);
-//            } catch (RuntimeException e) {
-//                JOptionPane.showMessageDialog(this, "Error while opening file");
-//            }
-//            setTitle(file.getName() + " - " + TITLE);
-//            filterView.getModel().setSaved(true);
-//        }
-    }
-
-    public void onSave() {
-        save();
-    }
 
     public boolean save() {
 //        JFileChooser chooser = new JFileChooser() {
@@ -252,8 +293,8 @@ public class FilterMainWindow extends AdvancedMainFrame {
 //            if (file == null) {
 //                return false;
 //            }
-//            List<Point> alivePlaces = filterView.getModel().getAlivePlaces();
-//            Config config = new Config(filterView.getWidthM(), filterView.getHeightN(), filterView.getLineStrokeWidth(),
+//            List<Point> alivePlaces = mainView.getModel().getAlivePlaces();
+//            Config config = new Config(mainView.getWidthM(), mainView.getHeightN(), mainView.getLineStrokeWidth(),
 //                    Hex.getSize(), alivePlaces.size(), alivePlaces);
 //            try (FileWriter writer = new FileWriter(file)) {
 //                config.print(writer);
@@ -261,14 +302,14 @@ public class FilterMainWindow extends AdvancedMainFrame {
 //                JOptionPane.showMessageDialog(this, "Error while saving file");
 //            }
 //            setTitle(file.getName() + " - " + TITLE);
-//            filterView.getModel().setSaved(true);
+//            mainView.getModel().setSaved(true);
 //            return true;
 //        }
         return false;
     }
 
     boolean saveProposal() {
-//        if (!filterView.getModel().isSaved()) {
+//        if (!mainView.getModel().isSaved()) {
 //            int res = JOptionPane.showConfirmDialog(this,
 //                    "Would you like to save current configuration?",
 //                    "Unsaved configuration",
@@ -280,14 +321,6 @@ public class FilterMainWindow extends AdvancedMainFrame {
 //            }
 //        }
         return true;
-    }
-
-    /**
-     * File/Exit - exits application
-     */
-    public void onExit() {
-        dispose();
-        System.exit(0);
     }
 
     /**

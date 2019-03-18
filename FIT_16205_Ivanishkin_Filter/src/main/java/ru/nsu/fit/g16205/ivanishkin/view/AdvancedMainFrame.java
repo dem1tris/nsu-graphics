@@ -3,12 +3,13 @@ package ru.nsu.fit.g16205.ivanishkin.view;
 import ru.nsu.cg.MainFrame;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.security.InvalidParameterException;
 
 public class AdvancedMainFrame extends MainFrame {
@@ -67,7 +68,7 @@ public class AdvancedMainFrame extends MainFrame {
             try {
                 if (button.isSelected() && !item.isSelected()) {
                     item.setSelected(true);
-                } else if (!button.isSelected() && item.isSelected()){
+                } else if (!button.isSelected() && item.isSelected()) {
                     item.setSelected(false);
                 }
             } catch (Exception e) {
@@ -86,8 +87,10 @@ public class AdvancedMainFrame extends MainFrame {
 
         JCheckBoxMenuItem item = new JCheckBoxMenuItem(getMenuPathName(title));
         item.setToolTipText(tooltip);
-        if (icon != null)
-            item.setIcon(new ImageIcon(getClass().getResource("../resources/" + icon), title));
+        if (icon != null) {
+            URL resource = getClass().getResource("../resources/" + icon);
+            item.setIcon(new ImageIcon(resource, title));
+        }
 
         if (element instanceof JMenu)
             ((JMenu) element).add(item);

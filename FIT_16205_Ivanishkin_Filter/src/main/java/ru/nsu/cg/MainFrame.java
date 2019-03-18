@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.security.InvalidParameterException;
 
 /**
@@ -67,8 +68,10 @@ public class MainFrame extends JFrame {
         JMenuItem item = new JMenuItem(title);
         item.setMnemonic(mnemonic);
         item.setToolTipText(tooltip);
-        if (icon != null)
-            item.setIcon(new ImageIcon(getClass().getResource("../resources/" + icon), title));
+        if (icon != null) {
+            URL resource = getClass().getResource("../resources/" + icon);
+            item.setIcon(new ImageIcon(resource, title));
+        }
         final Method method = getClass().getMethod(actionMethod);
         item.addActionListener(new ActionListener() {
 

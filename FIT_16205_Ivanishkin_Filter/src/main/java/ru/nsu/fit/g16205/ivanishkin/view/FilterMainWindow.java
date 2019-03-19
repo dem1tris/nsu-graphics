@@ -1,5 +1,9 @@
 package ru.nsu.fit.g16205.ivanishkin.view;
 
+import ru.nsu.fit.g16205.ivanishkin.filter.GrayscaleFilter;
+import ru.nsu.fit.g16205.ivanishkin.filter.MagnifyFilter;
+import ru.nsu.fit.g16205.ivanishkin.filter.NegativeFilter;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -73,6 +77,7 @@ public class FilterMainWindow extends AdvancedMainFrame {
 
             addSubMenu("File", KeyEvent.VK_F);
             addSubMenu("Image", KeyEvent.VK_F);
+            addSubMenu("Filters", KeyEvent.VK_F);
             addSubMenu("Modify", KeyEvent.VK_M);
             addSubMenu("Action", KeyEvent.VK_M);
             addSubMenu("Help", KeyEvent.VK_H);
@@ -107,6 +112,21 @@ public class FilterMainWindow extends AdvancedMainFrame {
             addToolBarButton("Image/Copy right");
 
             addToolBarSeparator();
+            //endregion
+
+            //region Filters
+            addMenuItem("Filters/Grayscale", "Grayscale transformation", KeyEvent.VK_G, "grayscale2.png",
+                    "onGrayscale");
+            addToolBarButton("Filters/Grayscale");
+
+            addMenuItem("Filters/Negative", "Negative transformation", KeyEvent.VK_N, "negative2.png",
+                    "onNegative");
+            addToolBarButton("Filters/Negative");
+
+            addMenuItem("Filters/Magnify", "Magnifying transformation", KeyEvent.VK_M, "magnify2.png",
+                    "onMagnify");
+            addToolBarButton("Filters/Magnify");
+
             //endregion
 
             impactItem = addCheckboxMenuItem("Modify/Show impact",
@@ -214,6 +234,18 @@ public class FilterMainWindow extends AdvancedMainFrame {
 
     public void onRight() {
         filtered.setImage(selected.getImage());
+    }
+
+    public void onGrayscale() {
+        filtered.setImage(new GrayscaleFilter().apply(selected.getImage()));
+    }
+
+    public void onNegative() {
+        filtered.setImage(new NegativeFilter().apply(selected.getImage()));
+    }
+
+    public void onMagnify() {
+        filtered.setImage(new MagnifyFilter().apply(selected.getImage()));
     }
 
     public void onRun(boolean enabled) {

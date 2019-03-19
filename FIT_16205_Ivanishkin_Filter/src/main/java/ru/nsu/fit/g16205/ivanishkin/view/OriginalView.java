@@ -8,6 +8,9 @@ import java.awt.image.BufferedImage;
 import static java.lang.Math.*;
 
 public class OriginalView extends ImageView {
+    private static Stroke DASHED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_MITER, 1.0f, new float[]{2f}, 0.0f);
+
     private boolean selectMode = false;
     private ImageView selectedView;
     private Rectangle rectangle = null;
@@ -18,7 +21,6 @@ public class OriginalView extends ImageView {
         MouseAdapter listener = new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                System.out.println("OriginalView.mouseDragged");
                 // todo: drag rectangle not only in its center
                 if (selectMode && image != null) {
                     if (rectangle == null) {
@@ -38,19 +40,27 @@ public class OriginalView extends ImageView {
                     selectedView.repaint();
                     repaint();
                 }
-
             }
 
             @Override
-            public void mousePressed(MouseEvent e) {
-                System.out.println("OriginalView.mousePressed");
-                repaint();
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+                if (selectedView != null && selectedView.image != null) {
+                    BufferedImage subimage = selectedView.image;
+                    BufferedImage copied = new BufferedImage(
+                            subimage.getColorModel(),
+                            subimage.getRaster().createCompatibleWritableRaster(SIZE, SIZE),
+                            subimage.isAlphaPremultiplied(),
+                            null
+                    );
+                    subimage.copyData(copied.getRaster());
+                    selectedView.setImage(copied);
+                }
             }
         };
 
         addMouseListener(listener);
         addMouseMotionListener(listener);
-
     }
 
     @Override
@@ -64,9 +74,15 @@ public class OriginalView extends ImageView {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        //todo: draw it by dotted line in xor mode
+        //todo: draw it by dotted line
         if (rectangle != null) {
-            g.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+            Graphics2D gg = (Graphics2D) g;
+            gg.setXORMode(Color.WHITE);
+            Stroke saved = gg.getStroke();
+            gg.setStroke(DASHED_STROKE);
+            gg.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+            gg.setPaintMode();
+            gg.setStroke(saved);
         }
     }
 

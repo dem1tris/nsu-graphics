@@ -190,7 +190,7 @@ public class FilterMainWindow extends AdvancedMainFrame {
     }
 
     public void onNew() {
-        mainView.setImage(null);
+        mainView.clear();
         setTitle("Untitled - " + TITLE);
     }
 
@@ -361,8 +361,10 @@ public class FilterMainWindow extends AdvancedMainFrame {
      * @param args command line arguments (unused)
      */
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         FilterMainWindow mainFrame = new FilterMainWindow();
         mainFrame.setVisible(true);
+        //todo: for debug
+        mainFrame.mainView.setImage(ImageIO.read(new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Filter_Data/Lena.bmp")));
     }
 }

@@ -6,6 +6,9 @@ import java.awt.image.WritableRaster;
 public class NegativeFilter implements Filter {
     @Override
     public BufferedImage apply(BufferedImage target) {
+        if (target == null) {
+            return null;
+        }
         BufferedImage result = new BufferedImage(
                 target.getColorModel(),
                 target.copyData(null),

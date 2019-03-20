@@ -60,6 +60,12 @@ public class MainView extends JPanel {
         original.setImage(img);
     }
 
+    public void clear() {
+        original.setImage(null);
+        selected.setImage(null);
+        filtered.setImage(null);
+    }
+
     public OriginalView getOriginal() {
         return original;
     }

@@ -5,8 +5,12 @@ import java.awt.image.WritableRaster;
 
 public class GrayscaleFilter implements Filter {
 
+    @SuppressWarnings("Duplicates")
     @Override
     public BufferedImage apply(BufferedImage target) {
+        if (target == null) {
+            return null;
+        }
         BufferedImage result = new BufferedImage(
                 target.getColorModel(),
                 target.copyData(null),

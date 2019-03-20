@@ -6,11 +6,16 @@ import java.util.Arrays;
 
 public class MagnifyFilter implements Filter {
     private static int[][] NEIGHBOURS = {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}};
+    private static int[][] NEIGHBOURS_IN_COL = {{0, 1}, {0, -1}};
+    private static int[][] NEIGHBOURS_IN_ROW = {{-1, 0}, {1, 0}};
     private int width;
     private int height;
 
     @Override
     public BufferedImage apply(BufferedImage target) {
+        if (target == null) {
+            return null;
+        }
         BufferedImage result = new BufferedImage(
                 target.getColorModel(),
                 target.copyData(null),
@@ -22,6 +27,8 @@ public class MagnifyFilter implements Filter {
         height = r.getHeight();
         int[] before = r.getPixels(0, 0, r.getWidth(), r.getHeight(), (int[]) null);
         int[] after = new int[before.length];
+
+        // no interpolation
         for (int i = 0; i < width * height * 3; i += 3) {
             int x = toX(i);
             int y = toY(i);
@@ -34,17 +41,45 @@ public class MagnifyFilter implements Filter {
                 after[i + 2] = before[ind + 2];
             }
         }
+
+        // bilinear, except last row and last column
         for (int i = 0; i < width * (height - 1) * 3; i += 3) {
             int x = toX(i);
             int y = toY(i);
+            final int j = i;
             if (x % 2 != 0 && y % 2 != 0) {
-                final int j = i;
-                after[i] = Arrays.stream(NEIGHBOURS).mapToInt(it -> after[relInd(j, it[0], it[1])]).sum() / 4;
-                after[i + 1] = Arrays.stream(NEIGHBOURS).mapToInt(it -> after[relInd(j, it[0], it[1]) + 1]).sum() / 4;
-                after[i + 2] = Arrays.stream(NEIGHBOURS).mapToInt(it -> after[relInd(j, it[0], it[1]) + 2]).sum() / 4;
+                if (x + 1 == width) { // last column, take only left neighbours
+                    after[i] = Arrays.stream(NEIGHBOURS).filter(it -> it[0] != 1)
+                            .mapToInt(it -> after[relInd(j, it[0], it[1])]).sum() / 2;
+                    after[i + 1] = Arrays.stream(NEIGHBOURS).filter(it -> it[0] != 1)
+                            .mapToInt(it -> after[relInd(j, it[0], it[1]) + 1]).sum() / 2;
+                    after[i + 2] = Arrays.stream(NEIGHBOURS).filter(it -> it[0] != 1)
+                            .mapToInt(it -> after[relInd(j, it[0], it[1]) + 2]).sum() / 2;
+                } else {
+                    after[i] = Arrays.stream(NEIGHBOURS).mapToInt(it -> after[relInd(j, it[0], it[1])]).sum() / 4;
+                    after[i + 1] = Arrays.stream(NEIGHBOURS).mapToInt(it -> after[relInd(j, it[0], it[1]) + 1]).sum() / 4;
+                    after[i + 2] = Arrays.stream(NEIGHBOURS).mapToInt(it -> after[relInd(j, it[0], it[1]) + 2]).sum() / 4;
+                }
+            } else if (x % 2 == 0 && y % 2 != 0) { // odd row, linear in column
+                after[i] = Arrays.stream(NEIGHBOURS_IN_COL).mapToInt(it -> after[relInd(j, it[0], it[1])]).sum() / 2;
+                after[i + 1] = Arrays.stream(NEIGHBOURS_IN_COL).mapToInt(it -> after[relInd(j, it[0], it[1]) + 1]).sum() / 2;
+                after[i + 2] = Arrays.stream(NEIGHBOURS_IN_COL).mapToInt(it -> after[relInd(j, it[0], it[1]) + 2]).sum() / 2;
+            } else if (x % 2 != 0 && y % 2 == 0) { // odd column, linear in row
+                if (x + 1 == width) { // last column, take 2 left neighbours in row
+                    after[i] = (after[relInd(i, -1, 0)] * 2 + after[relInd(i, -2, 0)]) / 3;
+                    after[i + 1] = (after[relInd(i, -1, 0) + 1] * 2 + after[relInd(i, -2, 0) + 1]) / 3;
+                    after[i + 2] = (after[relInd(i, -1, 0) + 2] * 2 + after[relInd(i, -2, 0) + 2]) / 3;
+                } else {
+                    after[i] = Arrays.stream(NEIGHBOURS_IN_ROW).mapToInt(it -> after[relInd(j, it[0], it[1])]).sum() / 2;
+                    after[i + 1] = Arrays.stream(NEIGHBOURS_IN_ROW).mapToInt(it -> after[relInd(j, it[0], it[1]) + 1]).sum() / 2;
+                    after[i + 2] = Arrays.stream(NEIGHBOURS_IN_ROW).mapToInt(it -> after[relInd(j, it[0], it[1]) + 2]).sum() / 2;
+                }
             }
         }
-        for (int i = width * (height - 1) * 3; i < width * height * 3; i+=3) {
+
+        // last row
+        // take 2 up neighbours
+        for (int i = width * (height - 1) * 3; i < width * height * 3; i += 3) {
             after[i] = (after[relInd(i, 0, -1)] * 2 + after[relInd(i, 0, -2)]) / 3;
             after[i + 1] = (after[relInd(i, 0, -1) + 1] * 2 + after[relInd(i, 0, -2) + 1]) / 3;
             after[i + 2] = (after[relInd(i, 0, -1) + 2] * 2 + after[relInd(i, 0, -2) + 2]) / 3;
@@ -72,6 +107,9 @@ public class MagnifyFilter implements Filter {
     private int relInd(int i, int dx, int dy) {
         int x = toX(i);
         int y = toY(i);
+        if (x + dx < 0 || x + dx >= width || y + dy < 0 || y + dy >= height) {
+            throw new IllegalArgumentException("x = " + x + ", dx = " + dx + ", y = " + y + ", dy = " + dy);
+        }
         return ((y + dy) * width + x + dx) * 3;
     }
 }

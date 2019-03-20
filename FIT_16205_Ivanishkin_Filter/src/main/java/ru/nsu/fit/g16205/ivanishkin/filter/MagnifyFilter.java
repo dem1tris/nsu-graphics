@@ -1,32 +1,16 @@
 package ru.nsu.fit.g16205.ivanishkin.filter;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
 import java.util.Arrays;
 
-public class MagnifyFilter implements Filter {
+public class MagnifyFilter extends AbstractFilter {
     private static int[][] NEIGHBOURS = {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}};
     private static int[][] NEIGHBOURS_IN_COL = {{0, 1}, {0, -1}};
     private static int[][] NEIGHBOURS_IN_ROW = {{-1, 0}, {1, 0}};
-    private int width;
-    private int height;
 
     @Override
     public BufferedImage apply(BufferedImage target) {
-        if (target == null) {
-            return null;
-        }
-        BufferedImage result = new BufferedImage(
-                target.getColorModel(),
-                target.copyData(null),
-                target.isAlphaPremultiplied(),
-                null);
-
-        WritableRaster r = result.getRaster();
-        width = r.getWidth();
-        height = r.getHeight();
-        int[] before = r.getPixels(0, 0, r.getWidth(), r.getHeight(), (int[]) null);
-        int[] after = new int[before.length];
+        init(target);
 
         // no interpolation
         for (int i = 0; i < width * height * 3; i += 3) {
@@ -84,32 +68,7 @@ public class MagnifyFilter implements Filter {
             after[i + 1] = (after[relInd(i, 0, -1) + 1] * 2 + after[relInd(i, 0, -2) + 1]) / 3;
             after[i + 2] = (after[relInd(i, 0, -1) + 2] * 2 + after[relInd(i, 0, -2) + 2]) / 3;
         }
-        r.setPixels(0, 0, r.getWidth(), r.getHeight(), after);
+        raster.setPixels(0, 0, raster.getWidth(), raster.getHeight(), after);
         return result;
-    }
-
-    private int toX(int i) {
-        return i / 3 % width;
-    }
-
-    private int toY(int i) {
-        return i / 3 / height;
-    }
-
-    /**
-     * Returns index of translated pixel
-     *
-     * @param i  - index of current pixel
-     * @param dx - translation by X
-     * @param dy - translation by Y
-     * @return relative index
-     */
-    private int relInd(int i, int dx, int dy) {
-        int x = toX(i);
-        int y = toY(i);
-        if (x + dx < 0 || x + dx >= width || y + dy < 0 || y + dy >= height) {
-            throw new IllegalArgumentException("x = " + x + ", dx = " + dx + ", y = " + y + ", dy = " + dy);
-        }
-        return ((y + dy) * width + x + dx) * 3;
     }
 }

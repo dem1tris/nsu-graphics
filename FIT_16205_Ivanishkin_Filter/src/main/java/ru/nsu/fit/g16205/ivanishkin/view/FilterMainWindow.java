@@ -1,8 +1,6 @@
 package ru.nsu.fit.g16205.ivanishkin.view;
 
-import ru.nsu.fit.g16205.ivanishkin.filter.GrayscaleFilter;
-import ru.nsu.fit.g16205.ivanishkin.filter.MagnifyFilter;
-import ru.nsu.fit.g16205.ivanishkin.filter.NegativeFilter;
+import ru.nsu.fit.g16205.ivanishkin.filter.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -12,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 
 /**
  * Main window class
@@ -47,9 +46,7 @@ public class FilterMainWindow extends AdvancedMainFrame {
      * Default constructor to create main window
      */
     public FilterMainWindow() {
-        super(400, 200, "Untitled - " + TITLE);
-        //todo: size is not changing
-        setSize(1500, 800);
+        super(1200, 500, "Untitled - " + TITLE);
         repaint();
 
         try {
@@ -126,6 +123,30 @@ public class FilterMainWindow extends AdvancedMainFrame {
             addMenuItem("Filters/Magnify", "Magnifying transformation", KeyEvent.VK_M, "magnify2.png",
                     "onMagnify");
             addToolBarButton("Filters/Magnify");
+
+            addMenuItem("Filters/Floyd-Stainberg dithering", "Floyd-Stainberg dithering", KeyEvent.VK_D,
+                    "dither.png", "onFSDithering");
+            addToolBarButton("Filters/Floyd-Stainberg dithering");
+
+            addMenuItem("Filters/Ordered dithering", "Ordered dithering", KeyEvent.VK_D,
+                    "odither.png", "onOrderedDithering");
+            addToolBarButton("Filters/Ordered dithering");
+
+            addMenuItem("Filters/Rotate", "Rotate image", KeyEvent.VK_D,
+                    "rotate.png", "onRotate");
+            addToolBarButton("Filters/Rotate");
+
+            addMenuItem("Filters/Gamma", "Gamma correction", KeyEvent.VK_Y,
+                    "gamma.png", "onGamma");
+            addToolBarButton("Filters/Gamma");
+
+            addMenuItem("Filters/Roberts", "Roberts operator", KeyEvent.VK_R,
+                    "roberts.png", "onRoberts");
+            addToolBarButton("Filters/Roberts");
+
+            addMenuItem("Filters/Sobel", "Sobel operator", KeyEvent.VK_R,
+                    "sobel.png", "onSobel");
+            addToolBarButton("Filters/Sobel");
 
             //endregion
 
@@ -248,6 +269,92 @@ public class FilterMainWindow extends AdvancedMainFrame {
         filtered.setImage(new MagnifyFilter().apply(selected.getImage()));
     }
 
+    public void onFSDithering() {
+        if (selected.getImage() != null) {
+            LinkedHashMap<String, Integer> params = new LinkedHashMap<>();
+            params.put("Red levels", 2);
+            params.put("Green levels", 2);
+            params.put("Blue levels", 2);
+            JDialog settings = new FilterSettingsDialog(params);
+            settings.setLocationRelativeTo(this);
+            settings.pack();
+            settings.setVisible(true);
+
+            filtered.setImage(new FloydStainbergDitherFilter(params).apply(selected.getImage()));
+        }
+    }
+
+    public void onOrderedDithering() {
+        if (selected.getImage() != null) {
+            LinkedHashMap<String, Integer> params = new LinkedHashMap<>();
+            params.put("Red levels", 2);
+            params.put("Green levels", 2);
+            params.put("Blue levels", 2);
+            JDialog settings = new FilterSettingsDialog(params);
+            settings.setLocationRelativeTo(this);
+            settings.pack();
+            settings.setVisible(true);
+
+            filtered.setImage(new OrderedDitherFilter(params).apply(selected.getImage()));
+        }
+    }
+
+    public void onRotate() {
+        if (selected.getImage() != null) {
+            LinkedHashMap<String, Integer> params = new LinkedHashMap<>();
+            params.put("Angle", 90);
+            params.put("From", -180);
+            params.put("To", 180);
+            JDialog settings = new OneParameterDialog(params);
+            settings.setLocationRelativeTo(this);
+            settings.pack();
+            settings.setVisible(true);
+            filtered.setImage(new RotateFilter(params.get("Angle")).apply(selected.getImage()));
+        }
+    }
+
+    public void onGamma() {
+        if (selected.getImage() != null) {
+            LinkedHashMap<String, Integer> params = new LinkedHashMap<>();
+            params.put("Gamma, x100", 140);
+            params.put("From", 0);
+            params.put("To", 700);
+            JDialog settings = new OneParameterDialog(params);
+            settings.setLocationRelativeTo(this);
+            settings.pack();
+            settings.setVisible(true);
+            filtered.setImage(new GammaFilter(params.get("Gamma, x100") / 100.).apply(selected.getImage()));
+        }
+    }
+
+    public void onRoberts() {
+        if (selected.getImage() != null) {
+            LinkedHashMap<String, Integer> params = new LinkedHashMap<>();
+            params.put("Threshold", 40);
+            params.put("From", 0);
+            params.put("To", 700);
+            JDialog settings = new OneParameterDialog(params);
+            settings.setLocationRelativeTo(this);
+            settings.pack();
+            settings.setVisible(true);
+            filtered.setImage(new RobertsFilter(params.get("Threshold")).apply(selected.getImage()));
+        }
+    }
+
+    public void onSobel() {
+        if (selected.getImage() != null) {
+            LinkedHashMap<String, Integer> params = new LinkedHashMap<>();
+            params.put("Threshold", 40);
+            params.put("From", 0);
+            params.put("To", 700);
+            JDialog settings = new OneParameterDialog(params);
+            settings.setLocationRelativeTo(this);
+            settings.pack();
+            settings.setVisible(true);
+            filtered.setImage(new SobelFilter(params.get("Threshold")).apply(selected.getImage()));
+        }
+    }
+
     public void onRun(boolean enabled) {
 
     }
@@ -293,50 +400,46 @@ public class FilterMainWindow extends AdvancedMainFrame {
 
 
     public boolean save() {
-//        JFileChooser chooser = new JFileChooser() {
-//            @Override
-//            public void approveSelection() {
-//                File f = getSelectedFile();
-//                if (f.exists() && getDialogType() == SAVE_DIALOG) {
-//                    int result = JOptionPane.showConfirmDialog(this, "File already exists, overwrite?",
-//                            "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
-//                    switch (result) {
-//                        case JOptionPane.YES_OPTION:
-//                            super.approveSelection();
-//                            return;
-//                        case JOptionPane.CANCEL_OPTION:
-//                            cancelSelection();
-//                            return;
-//                        case JOptionPane.NO_OPTION:
-//                        case JOptionPane.CLOSED_OPTION:
-//                            return;
-//                    }
-//                }
-//                super.approveSelection();
-//            }
-//        };
-//        File dir = new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Life_Data/");
-//        chooser.setCurrentDirectory(file != null ? file : dir);
-//        chooser.setFileFilter(new ExtensionFileFilter("txt", "Text files"));
-//
-//        int ret = chooser.showSaveDialog(this);
-//        if (ret == JFileChooser.APPROVE_OPTION) {
-//            file = chooser.getSelectedFile();
-//            if (file == null) {
-//                return false;
-//            }
-//            List<Point> alivePlaces = mainView.getModel().getAlivePlaces();
-//            Config config = new Config(mainView.getWidthM(), mainView.getHeightN(), mainView.getLineStrokeWidth(),
-//                    Hex.getSize(), alivePlaces.size(), alivePlaces);
-//            try (FileWriter writer = new FileWriter(file)) {
-//                config.print(writer);
-//            } catch (IOException e) {
-//                JOptionPane.showMessageDialog(this, "Error while saving file");
-//            }
-//            setTitle(file.getName() + " - " + TITLE);
-//            mainView.getModel().setSaved(true);
-//            return true;
-//        }
+        JFileChooser chooser = new JFileChooser() {
+            @Override
+            public void approveSelection() {
+                File f = getSelectedFile();
+                if (f.exists() && getDialogType() == SAVE_DIALOG) {
+                    int result = JOptionPane.showConfirmDialog(this, "File already exists, overwrite?",
+                            "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
+                    switch (result) {
+                        case JOptionPane.YES_OPTION:
+                            super.approveSelection();
+                            return;
+                        case JOptionPane.CANCEL_OPTION:
+                            cancelSelection();
+                            return;
+                        case JOptionPane.NO_OPTION:
+                        case JOptionPane.CLOSED_OPTION:
+                            return;
+                    }
+                }
+                super.approveSelection();
+            }
+        };
+        File dir = new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Filter_Data/");
+        chooser.setCurrentDirectory(file != null ? file : dir);
+        //chooser.setFileFilter(new ExtensionFileFilter("txt", "Text files"));
+
+        int ret = chooser.showSaveDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            file = chooser.getSelectedFile();
+            if (file == null) {
+                return false;
+            }
+            try {
+                ImageIO.write(mainView.getFiltered().image, "bmp", file);
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error while saving file");
+            }
+            setTitle(file.getName() + " - " + TITLE);
+            return true;
+        }
         return false;
     }
 

@@ -46,7 +46,7 @@ public class MainFrame extends JFrame {
      */
     public MainFrame(int x, int y, String title) {
         this();
-        setSize(x, y);
+        setPreferredSize(new Dimension(x, y));
         setLocationByPlatform(true);
         setTitle(title);
     }

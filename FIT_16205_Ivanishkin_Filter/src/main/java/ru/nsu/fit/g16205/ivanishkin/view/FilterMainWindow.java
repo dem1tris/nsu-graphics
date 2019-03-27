@@ -1,6 +1,9 @@
 package ru.nsu.fit.g16205.ivanishkin.view;
 
+import ru.nsu.cg.ExtensionFileFilter;
 import ru.nsu.fit.g16205.ivanishkin.filter.*;
+import ru.nsu.fit.g16205.ivanishkin.volumeRendering.Config;
+import ru.nsu.fit.g16205.ivanishkin.volumeRendering.Renderer;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -8,7 +11,9 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 
@@ -21,32 +26,26 @@ public class FilterMainWindow extends AdvancedMainFrame {
     private static final int STATUSBAR_HEIGHT = 20;
     private static final String TITLE = "Filter application";
     private File file;
-    private final JCheckBoxMenuItem xorItem;
-    private final JToggleButton xorButton;
-    private final JCheckBoxMenuItem replaceItem;
-    private final JToggleButton replaceButton;
-    private final ButtonGroup xorReplaceButtonGroup = new ButtonGroup();
-    private final ButtonGroup xorReplaceMenuGroup = new ButtonGroup();
 
+    private BufferedImage lastSaved;
     private final MainView mainView;
-    private final OriginalView original;
+    private final OriginalImageView original;
     private final ImageView selected;
     private final ImageView filtered;
+    private final PlotView absorption;
+    private final PlotView emission;
 
-    private JMenuItem nextItem;
-    private JButton nextButton;
+    private final JToggleButton absButton;
+    private final JToggleButton emButton;
 
-    private JMenuItem randomItem;
-    private JButton randomButton;
+    private Config config;
 
-    private JCheckBoxMenuItem impactItem;
-    private JToggleButton impactButton;
 
     /**
      * Default constructor to create main window
      */
     public FilterMainWindow() {
-        super(1200, 500, "Untitled - " + TITLE);
+        super(1200, 770, "Untitled - " + TITLE);
         repaint();
 
         try {
@@ -62,6 +61,8 @@ public class FilterMainWindow extends AdvancedMainFrame {
             original = mainView.getOriginal();
             selected = mainView.getSelected();
             filtered = mainView.getFiltered();
+            absorption = mainView.getAbsorprion();
+            emission = mainView.getEmission();
             JScrollPane scrollPane = new JScrollPane(mainView,
                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -75,8 +76,7 @@ public class FilterMainWindow extends AdvancedMainFrame {
             addSubMenu("File", KeyEvent.VK_F);
             addSubMenu("Image", KeyEvent.VK_F);
             addSubMenu("Filters", KeyEvent.VK_F);
-            addSubMenu("Modify", KeyEvent.VK_M);
-            addSubMenu("Action", KeyEvent.VK_M);
+            addSubMenu("Volume", KeyEvent.VK_M);
             addSubMenu("Help", KeyEvent.VK_H);
 
             //region File
@@ -140,6 +140,10 @@ public class FilterMainWindow extends AdvancedMainFrame {
                     "gamma.png", "onGamma");
             addToolBarButton("Filters/Gamma");
 
+            addToolBarSeparator();
+            //endregion
+
+            //region MatrixFilters
             addMenuItem("Filters/Roberts", "Roberts operator", KeyEvent.VK_R,
                     "roberts.png", "onRoberts");
             addToolBarButton("Filters/Roberts");
@@ -148,53 +152,43 @@ public class FilterMainWindow extends AdvancedMainFrame {
                     "sobel.png", "onSobel");
             addToolBarButton("Filters/Sobel");
 
+            addMenuItem("Filters/Blur", "Blur filter", KeyEvent.VK_R,
+                    "blur.png", "onBlur");
+            addToolBarButton("Filters/Blur");
+
+            addMenuItem("Filters/Sharpen", "Sharpen filter", KeyEvent.VK_R,
+                    "sharpen.png", "onSharpen");
+            addToolBarButton("Filters/Sharpen");
+
+            addMenuItem("Filters/Emboss", "Emboss filter", KeyEvent.VK_R,
+                    "emboss.png", "onEmboss");
+            addToolBarButton("Filters/Emboss");
+
+            addMenuItem("Filters/Aquarel", "Aquarel filter", KeyEvent.VK_R,
+                    "aqua.png", "onAquarel");
+            addToolBarButton("Filters/Aquarel");
+
             //endregion
-
-            impactItem = addCheckboxMenuItem("Modify/Show impact",
-                    "Show impact value of each cell", null, "onImpact");
-            impactButton = addToolBarToggleButton("Modify/Show impact");
-            bindCheckboxMenuWithToggleButton(impactItem, impactButton);
-            addToolBarToggleButton(impactButton);
-
-            xorItem = addCheckboxMenuItem("Modify/XOR",
-                    "Change aliveness on click", null, "onXor");
-            xorButton = addToolBarToggleButton("Modify/XOR");
-            bindCheckboxMenuWithToggleButton(xorItem, xorButton);
-            xorReplaceMenuGroup.add(xorItem);
-            xorReplaceButtonGroup.add(xorButton);
-            addToolBarToggleButton(xorButton);
-
-            replaceItem = addCheckboxMenuItem("Modify/Replace",
-                    "Set cell alive on click", null, "onReplace");
-            replaceButton = addToolBarToggleButton("Modify/Replace");
-            bindCheckboxMenuWithToggleButton(replaceItem, replaceButton);
-            xorReplaceMenuGroup.add(replaceItem);
-            xorReplaceButtonGroup.add(replaceButton);
-            addToolBarToggleButton(replaceButton);
-
-
-            addMenuItem("Modify/Settings", "Change rules and view", KeyEvent.VK_S, null, "onSettings");
-            addToolBarButton("Modify/Settings");
-
             addToolBarSeparator();
 
-            addMenuItem("Action/Clear", "Set all cells not alive", KeyEvent.VK_C, null, "onClear");
-            addToolBarButton("Action/Clear");
+            addMenuItem("Volume/Open config", "Open configuration file for volume rendering", KeyEvent.VK_R,
+                    "open2.png", "onOpenConfig");
+            addToolBarButton("Volume/Open config");
 
-            randomItem = addMenuItem("Action/Random", "Randomly (p == 0.3) set alive cells", KeyEvent.VK_R,
-                    null, "onRandom");
-            randomButton = addToolBarButton("Action/Random");
+            JCheckBoxMenuItem absItem = addCheckboxMenuItem("Volume/Absorption", "Enable absorption",
+                    "abs.png", "onAbsorption");
+            absButton = addToolBarToggleButton("Volume/Absorption");
+            bindCheckboxMenuWithToggleButton(absItem, absButton);
 
+            JCheckBoxMenuItem emItem = addCheckboxMenuItem("Volume/Emission", "Enable emission",
+                    "emission.png", "onEmission");
+            emButton = addToolBarToggleButton("Volume/Emission");
+            bindCheckboxMenuWithToggleButton(emItem, emButton);
 
-            nextItem = addMenuItem("Action/Next step", "Do one step forward", KeyEvent.VK_N, null,
-                    "onNext");
-            nextButton = addToolBarButton("Action/Next step");
+            addMenuItem("Volume/Visualise", "Visualise volume rendering", KeyEvent.VK_R,
+                    "run2.png", "onVisualise");
+            addToolBarButton("Volume/Visualise");
 
-            JCheckBoxMenuItem runItem = addCheckboxMenuItem("Action/Run", "Start/stop life", null,
-                    "onRun");
-            JToggleButton runButton = addToolBarToggleButton("Action/Run");
-            bindCheckboxMenuWithToggleButton(runItem, runButton);
-            addToolBarToggleButton(runButton);
 
             addToolBarSeparator();
 
@@ -211,8 +205,10 @@ public class FilterMainWindow extends AdvancedMainFrame {
     }
 
     public void onNew() {
-        mainView.clear();
-        setTitle("Untitled - " + TITLE);
+        if (saveProposal()) {
+            mainView.clear();
+            setTitle("Untitled - " + TITLE);
+        }
     }
 
     public void onOpen() {
@@ -337,7 +333,7 @@ public class FilterMainWindow extends AdvancedMainFrame {
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
-            filtered.setImage(new RobertsFilter(params.get("Threshold")).apply(selected.getImage()));
+            filtered.setImage(new RobertsMatrixFilter(params.get("Threshold")).apply(selected.getImage()));
         }
     }
 
@@ -351,40 +347,73 @@ public class FilterMainWindow extends AdvancedMainFrame {
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
-            filtered.setImage(new SobelFilter(params.get("Threshold")).apply(selected.getImage()));
+            filtered.setImage(new SobelMatrixFilter(params.get("Threshold")).apply(selected.getImage()));
         }
     }
 
-    public void onRun(boolean enabled) {
-
+    public void onBlur() {
+        if (selected.getImage() != null) {
+            filtered.setImage(new BlurMatrixFilter().apply(selected.getImage()));
+        }
     }
 
-    public void onImpact(boolean enabled) {
-
+    public void onSharpen() {
+        if (selected.getImage() != null) {
+            filtered.setImage(new SharpenMatrixFilter().apply(selected.getImage()));
+        }
     }
 
-    public void onNext() {
+    public void onEmboss() {
+        if (selected.getImage() != null) {
+            filtered.setImage(new EmbossMatrixFilter().apply(selected.getImage()));
+        }
     }
 
-    public void onSettings() {
-//        SettingsDialog dialog = new SettingsDialog(mainView);
-//        dialog.pack();
-//        dialog.setLocationRelativeTo(this);
-//        dialog.setVisible(true);
+    public void onAquarel() {
+        if (selected.getImage() != null) {
+            filtered.setImage(new AquarelFilter().apply(selected.getImage()));
+        }
     }
 
-    public void onClear() {
+    public void onOpenConfig() {
+        JFileChooser chooser = new JFileChooser();
+        File dir = new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Filter_Data/");
+        chooser.setCurrentDirectory(dir);
+        chooser.setFileFilter(new ExtensionFileFilter("txt", "Text files"));
+
+        int ret = chooser.showOpenDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            file = chooser.getSelectedFile();
+            try (FileReader reader = new FileReader(file)) {
+                config = Config.from(reader);
+                absorption.clear();
+                emission.clear();
+                absorption.addPlot(config.dotsAbsorption, Color.BLACK);
+                emission.addPlot(config.dotsRedEmission, Color.RED);
+                emission.addPlot(config.dotsGreenEmission, Color.GREEN);
+                emission.addPlot(config.dotsBlueEmission, Color.BLUE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            }
+            setTitle(file.getName() + " - " + TITLE);
+        }
     }
 
-    public void onRandom() {
+    public void onAbsorption(boolean enable) {
+        absButton.setSelected(enable);
     }
 
-    public void onXor(boolean val) {
-
+    public void onEmission(boolean enable) {
+        emButton.setSelected(enable);
     }
 
-    public void onReplace(boolean val) {
-        onXor(!val);
+    public void onVisualise() {
+        if (selected.getImage() != null && config != null) {
+            filtered.setImage(
+                    new Renderer(config, 350, 350, 350, absButton.isSelected(), emButton.isSelected())
+                            .apply(selected.getImage())
+            );
+        }
     }
 
     /**
@@ -424,7 +453,7 @@ public class FilterMainWindow extends AdvancedMainFrame {
         };
         File dir = new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Filter_Data/");
         chooser.setCurrentDirectory(file != null ? file : dir);
-        //chooser.setFileFilter(new ExtensionFileFilter("txt", "Text files"));
+        chooser.setFileFilter(new ExtensionFileFilter("bmp", "Text files"));
 
         int ret = chooser.showSaveDialog(this);
         if (ret == JFileChooser.APPROVE_OPTION) {
@@ -433,7 +462,8 @@ public class FilterMainWindow extends AdvancedMainFrame {
                 return false;
             }
             try {
-                ImageIO.write(mainView.getFiltered().image, "bmp", file);
+                ImageIO.write(filtered.getImage(), "bmp", file);
+                lastSaved = filtered.getImage();
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Error while saving file");
             }
@@ -443,18 +473,18 @@ public class FilterMainWindow extends AdvancedMainFrame {
         return false;
     }
 
-    boolean saveProposal() {
-//        if (!mainView.getModel().isSaved()) {
-//            int res = JOptionPane.showConfirmDialog(this,
-//                    "Would you like to save current configuration?",
-//                    "Unsaved configuration",
-//                    JOptionPane.YES_NO_CANCEL_OPTION);
-//            if (res == JOptionPane.YES_OPTION) {
-//                return save();
-//            } else if (res == JOptionPane.CLOSED_OPTION || res == JOptionPane.CANCEL_OPTION) {
-//                return false;
-//            }
-//        }
+    private boolean saveProposal() {
+        if (lastSaved != filtered.getImage()) {
+            int res = JOptionPane.showConfirmDialog(this,
+                    "Would you like to save current image?",
+                    "Unsaved image",
+                    JOptionPane.YES_NO_CANCEL_OPTION);
+            if (res == JOptionPane.YES_OPTION) {
+                return save();
+            } else if (res == JOptionPane.CLOSED_OPTION || res == JOptionPane.CANCEL_OPTION) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -467,7 +497,5 @@ public class FilterMainWindow extends AdvancedMainFrame {
     public static void main(String[] args) throws IOException {
         FilterMainWindow mainFrame = new FilterMainWindow();
         mainFrame.setVisible(true);
-        //todo: for debug
-        mainFrame.mainView.setImage(ImageIO.read(new File(System.getProperty("user.dir") + "/../FIT_16205_Ivanishkin_Filter_Data/Lena.bmp")));
     }
 }

@@ -7,7 +7,7 @@ import java.awt.image.BufferedImage;
 
 import static java.lang.Math.*;
 
-public class OriginalView extends ImageView {
+public class OriginalImageView extends ImageView {
     private static Stroke DASHED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
             BasicStroke.JOIN_MITER, 1.0f, new float[]{2f}, 0.0f);
 
@@ -17,7 +17,7 @@ public class OriginalView extends ImageView {
     private int rectWidth;
     private int rectHeight;
 
-    public OriginalView() {
+    public OriginalImageView() {
         MouseAdapter listener = new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
@@ -74,7 +74,6 @@ public class OriginalView extends ImageView {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        //todo: draw it by dotted line
         if (rectangle != null) {
             Graphics2D gg = (Graphics2D) g;
             gg.setXORMode(Color.WHITE);

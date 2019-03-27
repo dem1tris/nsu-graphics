@@ -14,7 +14,7 @@ public class GammaFilter extends AbstractFilter {
 
     @Override
     public BufferedImage apply(BufferedImage target) {
-        init(target);
+        prepareFor(target);
         System.err.println(gamma);
         for (int i = 0; i < width * height * 3; i++) {
             after[i] = (int) round(pow(1. * before[i] / 255, gamma) * 255);

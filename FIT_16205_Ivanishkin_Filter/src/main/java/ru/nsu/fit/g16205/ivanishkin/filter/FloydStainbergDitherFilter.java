@@ -1,5 +1,7 @@
 package ru.nsu.fit.g16205.ivanishkin.filter;
 
+import ru.nsu.fit.g16205.ivanishkin.utils.IndexTranslator;
+
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Map;
@@ -22,7 +24,7 @@ public class FloydStainbergDitherFilter extends AbstractFilter {
 
     @Override
     public BufferedImage apply(BufferedImage target) {
-        init(target);
+        prepareFor(target);
         after = Arrays.copyOf(before, before.length);
 
         applyForColor(0, rLevels);
@@ -41,6 +43,7 @@ public class FloydStainbergDitherFilter extends AbstractFilter {
      * @param levels     in new palette for specified color
      */
     private void applyForColor(int colorIndex, int levels) {
+        IndexTranslator t = new IndexTranslator(width, height);
         for (int i = 0; i < width * height * 3; i += 3) {
             int oldPixel = after[i + colorIndex]; // intentionally after, not before
             if (oldPixel < 0) {
@@ -51,19 +54,19 @@ public class FloydStainbergDitherFilter extends AbstractFilter {
             int newPixel = closestColor(oldPixel, levels);
             int err = oldPixel - newPixel;
             after[i + colorIndex] = newPixel;
-            int x = toX(i);
-            int y = toY(i);
+            int x = t.toX(i);
+            int y = t.toY(i);
             if (x + 1 != width) {
-                after[relInd(i, 1, 0) + colorIndex] += (int) round(err * 7. / 16);
+                after[t.movedIndex(i, 1, 0) + colorIndex] += (int) round(err * 7. / 16);
             }
             if (x != 0 && y + 1 != height) {
-                after[relInd(i, -1, 1) + colorIndex] += (int) round(err * 3. / 16);
+                after[t.movedIndex(i, -1, 1) + colorIndex] += (int) round(err * 3. / 16);
             }
             if (y + 1 != height) {
-                after[relInd(i, 0, 1) + colorIndex] += (int) round(err * 5. / 16);
+                after[t.movedIndex(i, 0, 1) + colorIndex] += (int) round(err * 5. / 16);
             }
             if (x + 1 != width && y + 1 != height) {
-                after[relInd(i, 1, 1) + colorIndex] += (int) round(err * 1. / 16);
+                after[t.movedIndex(i, 1, 1) + colorIndex] += (int) round(err * 1. / 16);
             }
         }
     }

@@ -1,5 +1,7 @@
 package ru.nsu.fit.g16205.ivanishkin.filter;
 
+import ru.nsu.fit.g16205.ivanishkin.utils.IndexTranslator;
+
 import java.awt.image.BufferedImage;
 import java.util.Map;
 
@@ -42,7 +44,7 @@ public class OrderedDitherFilter extends AbstractFilter {
 
     @Override
     public BufferedImage apply(BufferedImage target) {
-        init(target);
+        prepareFor(target);
 
         applyForColor(0, rLevels);
         applyForColor(1, gLevels);
@@ -60,21 +62,22 @@ public class OrderedDitherFilter extends AbstractFilter {
      * @param levels     in new palette for specified color
      */
     private void applyForColor(int colorIndex, int levels) {
+        IndexTranslator t = new IndexTranslator(width, height);
         int quant = 255 / (levels - 1);
         for (int i = 0; i < width * height * 3; i += 3) {
             int oldPixel = before[i + colorIndex];
-            int x = toX(i);
-            int y = toY(i);
+            int x = t.toX(i);
+            int y = t.toY(i);
             after[i + colorIndex] = closestColor((int) round(oldPixel + quant * (matrix[x % dim][y % dim] - 1. / 2)), levels);
         }
     }
 
     private int closestColor(int oldPixel, int levels) {
         int quant = 255 / (levels - 1);
-        int newPixel = oldPixel / quant;
-        newPixel += oldPixel % quant > quant / 2 ? 1 : 0;
-        newPixel *= quant;
-        return newPixel;
-        //return (int) round(1. * oldPixel / quant) * quant;
+//        int newPixel = oldPixel / quant;
+//        newPixel += oldPixel % quant > quant / 2 ? 1 : 0;
+//        newPixel *= quant;
+//        return newPixel;
+        return (int) round(1. * oldPixel / quant) * quant;
     }
 }

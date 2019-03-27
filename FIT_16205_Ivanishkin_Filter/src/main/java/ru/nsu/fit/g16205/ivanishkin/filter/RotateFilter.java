@@ -1,11 +1,14 @@
 package ru.nsu.fit.g16205.ivanishkin.filter;
 
+import ru.nsu.fit.g16205.ivanishkin.utils.IndexTranslator;
+
 import java.awt.image.BufferedImage;
 
 import static java.lang.Math.*;
 
 public class RotateFilter extends AbstractFilter {
     private int angle;
+    private IndexTranslator t;
 
     public RotateFilter(int angle) {
         if (angle < -180 || angle > 180) {
@@ -16,18 +19,19 @@ public class RotateFilter extends AbstractFilter {
 
     @Override
     public BufferedImage apply(BufferedImage target) {
-        init(target);
+        prepareFor(target);
+        t = new IndexTranslator(width, height);
         if (angle == -180 || angle == 180) {
             for (int i = 0; i < width * height * 3; i++) {
-                after[i] = before[toI(width - toX(i) - 1, height - toY(i) - 1) + i % 3];
+                after[i] = before[t.toI(width - t.toX(i) - 1, height - t.toY(i) - 1) + i % 3];
             }
         } else if (angle == 90) {
             for (int i = 0; i < width * height * 3; i++) {
-                after[i] = before[toI(toY(i), width - toX(i) - 1) + i % 3];
+                after[i] = before[t.toI(t.toY(i), width - t.toX(i) - 1) + i % 3];
             }
         } else if (angle == -90) {
             for (int i = 0; i < width * height * 3; i++) {
-                after[i] = before[toI(height - toY(i) - 1, toX(i)) + i % 3];
+                after[i] = before[t.toI(height - t.toY(i) - 1, t.toX(i)) + i % 3];
             }
         } else {
             double cos = cos(toRadians(angle));
@@ -38,8 +42,8 @@ public class RotateFilter extends AbstractFilter {
             };
             for (int i = 0; i < width * height * 3; i++) {
                 double[][] m = invRotMatrix;
-                int x = toX(i) - width / 2;
-                int y = toY(i) - height / 2;
+                int x = t.toX(i) - width / 2;
+                int y = t.toY(i) - height / 2;
                 after[i] = extended(
                         x * m[0][0] + y * m[0][1] + width / 2.,
                         x * m[1][0] + y * m[1][1] + height / 2.,
@@ -57,7 +61,7 @@ public class RotateFilter extends AbstractFilter {
         if (xx < 0 || xx >= width || yy < 0 || yy >= height) {
             return 255;
         } else {
-            return before[toI(xx, yy) + colorOffset];
+            return before[t.toI(xx, yy) + colorOffset];
         }
     }
 }

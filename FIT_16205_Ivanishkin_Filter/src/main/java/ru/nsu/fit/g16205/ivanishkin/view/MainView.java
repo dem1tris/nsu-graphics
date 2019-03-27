@@ -13,11 +13,12 @@ import java.awt.image.BufferedImage;
  */
 public class MainView extends JPanel {
     private static final int PADDING = 20;
-    private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
 
-    private OriginalView original = new OriginalView();
-    private ImageView selected = new SelectedView();
+    private OriginalImageView original = new OriginalImageView();
+    private ImageView selected = new ImageView();
     private ImageView filtered = new ImageView();
+    private PlotView absorptionPlot = new PlotView();
+    private PlotView emissionPlot = new PlotView();
 
 
     /**
@@ -32,27 +33,30 @@ public class MainView extends JPanel {
         addMouseListener(listener);
         addMouseMotionListener(listener);
 
-        this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        JPanel images = new JPanel();
+        images.setLayout(new BoxLayout(images, BoxLayout.X_AXIS));
+        images.add(Box.createHorizontalGlue());
+        images.add(original);
+        images.add(Box.createRigidArea(new Dimension(PADDING, 0)));
+        images.add(selected);
+        images.add(Box.createRigidArea(new Dimension(PADDING, 0)));
+        images.add(filtered);
+        images.add(Box.createHorizontalGlue());
 
-        add(Box.createHorizontalGlue());
-        add(original);
-        add(Box.createRigidArea(new Dimension(PADDING, 0)));
-        add(selected);
-        add(Box.createRigidArea(new Dimension(PADDING, 0)));
-        add(filtered);
-        add(Box.createHorizontalGlue());
+        JPanel plots = new JPanel();
+        plots.setLayout(new BoxLayout(plots, BoxLayout.X_AXIS));
+        plots.add(Box.createHorizontalGlue());
+        plots.add(absorptionPlot);
+        plots.add(Box.createRigidArea(new Dimension(PADDING, 0)));
+        plots.add(emissionPlot);
+        plots.add(Box.createHorizontalGlue());
 
-    }
-
-
-    /**
-     * Performs actual component drawing
-     *
-     * @param g Graphics object to draw component to
-     */
-    @Override
-    protected void paintComponent(final Graphics g) {
-        super.paintComponent(g);
+        add(Box.createVerticalGlue());
+        add(images);
+        add(Box.createRigidArea(new Dimension(0, PADDING)));
+        add(plots);
+        add(Box.createVerticalGlue());
 
     }
 
@@ -66,7 +70,7 @@ public class MainView extends JPanel {
         filtered.setImage(null);
     }
 
-    public OriginalView getOriginal() {
+    public OriginalImageView getOriginal() {
         return original;
     }
 
@@ -76,5 +80,13 @@ public class MainView extends JPanel {
 
     public ImageView getFiltered() {
         return filtered;
+    }
+
+    public PlotView getAbsorprion() {
+        return absorptionPlot;
+    }
+
+    public PlotView getEmission() {
+        return emissionPlot;
     }
 }

@@ -41,6 +41,8 @@ public class Renderer extends AbstractFilter {
     @Override
     public BufferedImage apply(BufferedImage target) {
         prepareFor(target);
+        double xDensity = width * 1. / nx;
+        double yDensity = height * 1. / ny;
         if (!(needAbsorption || needEmission)) {
             raster.setPixels(0, 0, width, height, before);
             return result;
@@ -48,10 +50,10 @@ public class Renderer extends AbstractFilter {
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
         double delta;
-        for (int x = 0; x < nx; x++) {
-            for (int y = 0; y < ny; y++) {
+        for (int xVox = 0; xVox < nx; xVox++) {
+            for (int yVox = 0; yVox < ny; yVox++) {
                 for (int z = 0; z < nz; z++) {
-                    double vox = calculateVoxel(x, y, z);
+                    double vox = calculateVoxel(xVox, yVox, z);
                     if (min > vox) {
                         min = vox;
                     }
@@ -71,7 +73,9 @@ public class Renderer extends AbstractFilter {
                 for (int y = 0; y < height; y++) {
                     double val = before[t.toI(x, y) + i];
                     for (int z = 0; z < nz; z++) {
-                        int vox = (int) round((calculateVoxel(x, y, z) - min) / delta);
+                        int xVox = (int) floor(x / xDensity);
+                        int yVox = (int) floor(y / yDensity);
+                        int vox = (int) round((calculateVoxel(xVox, yVox, z) - min) / delta);
                         if (needAbsorption) {
                             val = val * exp(-absorption.get(vox) * dz);
                         }
@@ -126,14 +130,14 @@ public class Renderer extends AbstractFilter {
     private double calculateVoxel(int x, int y, int z) {
         double val = 0;
         for (Map.Entry<Point3, Double> entry : config.charges.entrySet()) {
-            Point3 p = entry.getKey();
-            double q = entry.getValue();
-            double dx = (x + 0.5) / nx - p.x;
-            double dy = (y + 0.5) / ny - p.y;
-            double dz = (z + 0.5) / nz - p.z;
+            Point3 point = entry.getKey();
+            double charge = entry.getValue();
+            double dx = (x + 0.5) / nx - point.x;
+            double dy = (y + 0.5) / ny - point.y;
+            double dz = (z + 0.5) / nz - point.z;
             double dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
             dist = (dist < 0.1) ? 0.1 : dist;
-            val += q / dist;
+            val += charge / dist;
         }
         return val;
     }

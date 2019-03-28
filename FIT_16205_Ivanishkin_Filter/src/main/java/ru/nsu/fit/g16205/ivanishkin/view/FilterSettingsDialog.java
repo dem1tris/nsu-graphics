@@ -19,15 +19,18 @@ public class FilterSettingsDialog extends JDialog {
     private JLabel label1;
     private JLabel label2;
     private JLabel label3;
+    private JLabel topLabel;
 
     private JLabel[] labels;
     private String[] texts;
     private JTextField[] fields;
 
     private LinkedHashMap<String, Integer> params;
+    private int from;
+    private int to;
 
     public FilterSettingsDialog(LinkedHashMap<String, Integer> params) {
-        if (params.size() != PARAMS_SIZE) {
+        if (params.size() < PARAMS_SIZE) {
             throw new IllegalArgumentException("Parameters map should contain " + PARAMS_SIZE + " entries");
         }
         this.params = params;
@@ -62,8 +65,8 @@ public class FilterSettingsDialog extends JDialog {
         try {
             for (int i = 0; i < PARAMS_SIZE; i++) {
                 values[i] = Integer.parseInt(fields[i].getText());
-                if (values[i] < 2 || values[i] > 256) {
-                    throw new IllegalArgumentException("Parameters should be between 2 and 256, inclusively");
+                if (values[i] < from || values[i] > to) {
+                    throw new IllegalArgumentException("Parameters should be between " + from + " and " + to + ", inclusively");
                 }
             }
         } catch (IllegalArgumentException e) {
@@ -86,6 +89,7 @@ public class FilterSettingsDialog extends JDialog {
     }
 
     private void createUIComponents() {
+        topLabel = new JLabel();
         label1 = new JLabel();
         label2 = new JLabel();
         label3 = new JLabel();
@@ -99,6 +103,9 @@ public class FilterSettingsDialog extends JDialog {
             labels[i].setText(texts[i]);
             fields[i].setText(params.get(texts[i]).toString());
         }
+        from = params.getOrDefault("From", 2);
+        to = params.getOrDefault("To", 256);
+        topLabel.setText("All from " + from + " to " + to);
     }
 
     /**
@@ -138,9 +145,7 @@ public class FilterSettingsDialog extends JDialog {
         levelsPane.add(label3, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         textField3.setColumns(5);
         levelsPane.add(textField3, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JLabel label4 = new JLabel();
-        label4.setText("All from 2 to 256");
-        contentPane.add(label4, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        contentPane.add(topLabel, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

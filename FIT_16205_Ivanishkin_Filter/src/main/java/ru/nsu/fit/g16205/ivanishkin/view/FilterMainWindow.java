@@ -409,8 +409,18 @@ public class FilterMainWindow extends AdvancedMainFrame {
 
     public void onVisualise() {
         if (selected.getImage() != null && config != null) {
+            LinkedHashMap<String, Integer> params = new LinkedHashMap<>();
+            params.put("Nx", 350);
+            params.put("Ny", 350);
+            params.put("Nz", 350);
+            params.put("From", 1);
+            params.put("To", 350);
+            JDialog settings = new FilterSettingsDialog(params);
+            settings.setLocationRelativeTo(this);
+            settings.pack();
+            settings.setVisible(true);
             filtered.setImage(
-                    new Renderer(config, 350, 350, 350, absButton.isSelected(), emButton.isSelected())
+                    new Renderer(config, params.get("Nx"), params.get("Ny"), params.get("Nz"), absButton.isSelected(), emButton.isSelected())
                             .apply(selected.getImage())
             );
         }

@@ -271,12 +271,14 @@ public class FilterMainWindow extends AdvancedMainFrame {
             params.put("Red levels", 2);
             params.put("Green levels", 2);
             params.put("Blue levels", 2);
-            JDialog settings = new FilterSettingsDialog(params);
+            FilterSettingsDialog settings = new FilterSettingsDialog(params);
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
 
-            filtered.setImage(new FloydStainbergDitherFilter(params).apply(selected.getImage()));
+            if (!settings.isCancelled()) {
+                filtered.setImage(new FloydStainbergDitherFilter(params).apply(selected.getImage()));
+            }
         }
     }
 
@@ -286,12 +288,14 @@ public class FilterMainWindow extends AdvancedMainFrame {
             params.put("Red levels", 2);
             params.put("Green levels", 2);
             params.put("Blue levels", 2);
-            JDialog settings = new FilterSettingsDialog(params);
+            FilterSettingsDialog settings = new FilterSettingsDialog(params);
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
 
-            filtered.setImage(new OrderedDitherFilter(params).apply(selected.getImage()));
+            if (!settings.isCancelled()) {
+                filtered.setImage(new OrderedDitherFilter(params).apply(selected.getImage()));
+            }
         }
     }
 
@@ -301,11 +305,13 @@ public class FilterMainWindow extends AdvancedMainFrame {
             params.put("Angle", 90);
             params.put("From", -180);
             params.put("To", 180);
-            JDialog settings = new OneParameterDialog(params);
+            OneParameterDialog settings = new OneParameterDialog(params);
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
-            filtered.setImage(new RotateFilter(params.get("Angle")).apply(selected.getImage()));
+            if (!settings.isCancelled()) {
+                filtered.setImage(new RotateFilter(params.get("Angle")).apply(selected.getImage()));
+            }
         }
     }
 
@@ -315,11 +321,13 @@ public class FilterMainWindow extends AdvancedMainFrame {
             params.put("Gamma, x100", 140);
             params.put("From", 0);
             params.put("To", 700);
-            JDialog settings = new OneParameterDialog(params);
+            OneParameterDialog settings = new OneParameterDialog(params);
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
-            filtered.setImage(new GammaFilter(params.get("Gamma, x100") / 100.).apply(selected.getImage()));
+            if (!settings.isCancelled()) {
+                filtered.setImage(new GammaFilter(params.get("Gamma, x100") / 100.).apply(selected.getImage()));
+            }
         }
     }
 
@@ -329,11 +337,13 @@ public class FilterMainWindow extends AdvancedMainFrame {
             params.put("Threshold", 40);
             params.put("From", 0);
             params.put("To", 700);
-            JDialog settings = new OneParameterDialog(params);
+            OneParameterDialog settings = new OneParameterDialog(params);
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
-            filtered.setImage(new RobertsMatrixFilter(params.get("Threshold")).apply(selected.getImage()));
+            if (!settings.isCancelled()) {
+                filtered.setImage(new RobertsMatrixFilter(params.get("Threshold")).apply(selected.getImage()));
+            }
         }
     }
 
@@ -343,11 +353,13 @@ public class FilterMainWindow extends AdvancedMainFrame {
             params.put("Threshold", 40);
             params.put("From", 0);
             params.put("To", 700);
-            JDialog settings = new OneParameterDialog(params);
+            OneParameterDialog settings = new OneParameterDialog(params);
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
-            filtered.setImage(new SobelMatrixFilter(params.get("Threshold")).apply(selected.getImage()));
+            if (!settings.isCancelled()) {
+                filtered.setImage(new SobelMatrixFilter(params.get("Threshold")).apply(selected.getImage()));
+            }
         }
     }
 
@@ -415,14 +427,16 @@ public class FilterMainWindow extends AdvancedMainFrame {
             params.put("Nz", 350);
             params.put("From", 1);
             params.put("To", 350);
-            JDialog settings = new FilterSettingsDialog(params);
+            FilterSettingsDialog settings = new FilterSettingsDialog(params);
             settings.setLocationRelativeTo(this);
             settings.pack();
             settings.setVisible(true);
-            filtered.setImage(
-                    new Renderer(config, params.get("Nx"), params.get("Ny"), params.get("Nz"), absButton.isSelected(), emButton.isSelected())
-                            .apply(selected.getImage())
-            );
+            if (!settings.isCancelled()) {
+                filtered.setImage(
+                        new Renderer(config, params.get("Nx"), params.get("Ny"), params.get("Nz"), absButton.isSelected(), emButton.isSelected())
+                                .apply(selected.getImage())
+                );
+            }
         }
     }
 

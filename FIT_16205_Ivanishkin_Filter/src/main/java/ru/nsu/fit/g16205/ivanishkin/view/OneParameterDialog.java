@@ -18,6 +18,8 @@ public class OneParameterDialog extends JDialog {
     private int min;
     private int max;
 
+    private boolean cancelled = false;
+
     /**
      * @param params first entry -- label and default value,
      *               also "From" and "To" keys with appropriate values
@@ -81,12 +83,17 @@ public class OneParameterDialog extends JDialog {
             JOptionPane.showMessageDialog(this, e.getMessage());
             return;
         }
+        cancelled = false;
         dispose();
     }
 
     private void onCancel() {
-        // add your code here if necessary
+        cancelled = true;
         dispose();
+    }
+
+    public boolean isCancelled() {
+        return cancelled;
     }
 
 

@@ -29,6 +29,8 @@ public class FilterSettingsDialog extends JDialog {
     private int from;
     private int to;
 
+    private boolean cancelled = false;
+
     public FilterSettingsDialog(LinkedHashMap<String, Integer> params) {
         if (params.size() < PARAMS_SIZE) {
             throw new IllegalArgumentException("Parameters map should contain " + PARAMS_SIZE + " entries");
@@ -80,12 +82,17 @@ public class FilterSettingsDialog extends JDialog {
         for (int i = 0; i < PARAMS_SIZE; i++) {
             params.put(texts[i], values[i]);
         }
+        cancelled = false;
         dispose();
     }
 
     private void onCancel() {
-        // add your code here if necessary
+        cancelled = true;
         dispose();
+    }
+
+    public boolean isCancelled() {
+        return cancelled;
     }
 
     private void createUIComponents() {

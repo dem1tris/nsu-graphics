@@ -1,3 +1,9 @@
+# Compiler output
+*/out/*
+
+# IDEA files
+*/.idea/*
+
 # Compiled class file
 *.class
 

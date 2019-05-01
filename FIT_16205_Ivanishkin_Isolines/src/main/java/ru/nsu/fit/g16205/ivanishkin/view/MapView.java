@@ -20,6 +20,7 @@ import static java.lang.Math.*;
 
 public class MapView extends JPanel {
     private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
+    private static final int PADDING = 10;
     private static final int LEGEND_WIDTH = 200;
 
     private Config config;
@@ -73,7 +74,7 @@ public class MapView extends JPanel {
     }
 
     private void onContainerSizeChanged() {
-        width = getWidth() - LEGEND_WIDTH;
+        width = getWidth() - LEGEND_WIDTH - PADDING;
         height = getHeight();
         pixelDeltaX = (fun.xEnd() - fun.x0()) / (width - 1);
         pixelDeltaY = (fun.yEnd() - fun.y0()) / (height - 1);
@@ -189,7 +190,7 @@ public class MapView extends JPanel {
 
         g.drawImage(map, 0, 0, this);
         g.drawImage(lines, 0, 0, this);
-        g.drawImage(legendImg, width, 0, this);
+        g.drawImage(legendImg, width + PADDING, 0, this);
     }
 
     private void drawPoints() {

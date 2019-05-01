@@ -61,7 +61,7 @@ public class GridFunction {
         this.dx = (xEnd - x0) / (nx - 1);
         this.dy = (yEnd - y0) / (ny - 1);
         // (0, 1) (1, 1)
-        // (0, 0) (0, 1)
+        // (0, 0) (1, 0)
         ArrayList<Double> gridValues = new ArrayList<>(nx * ny);
         for (int i = 0; i < ny; i++) {
             for (int j = 0; j < nx; j++) {
@@ -74,8 +74,11 @@ public class GridFunction {
         values = Collections.unmodifiableList(gridValues);
     }
 
-    //todo: some strange point
-
+    // j
+    // ^
+    // |
+    // |
+    //  ----> i
     public double atNode(int ix, int jy) {
         if (ix < 0 || ix >= nx || jy < 0 || jy >= ny) {
             throw new IllegalArgumentException(ix + " " + jy + " " + nx + " " + ny);
@@ -105,16 +108,15 @@ public class GridFunction {
                 throw new IllegalArgumentException("x == " + x + ", y == " + y);
             }
         }
-        // left-low grid node coordinates
+        // left-top grid node coordinates
         int leftI = (int) ((x - x0) / dx);
-//        int loJ = (int) ((y - y0) / dy);
-        int loJ = (int) ((y - y0) / dy);
+        int topJ = (int) ((y - y0) / dy);
 
 
-        if (leftI < 0 || loJ < 0 || leftI >= nx || loJ >= ny) throw new RuntimeException(leftI + " " + loJ);
+        if (leftI < 0 || topJ < 0 || leftI >= nx || topJ >= ny) throw new RuntimeException(leftI + " " + topJ);
 
         double deltaI = (x - (x0 + leftI * dx)) / dx;
-        double deltaJ = (y - (y0 + loJ * dy)) / dy;
+        double deltaJ = (y - (y0 + topJ * dy)) / dy;
         deltaI = deltaI > 1 ? 1 : deltaI < 0 ? 0 : deltaI;
         deltaJ = deltaJ > 1 ? 1 : deltaJ < 0 ? 0 : deltaJ;
 
@@ -124,18 +126,18 @@ public class GridFunction {
 
 
         if (x < xEnd && y < yEnd) {
-            return atNode(leftI, loJ) * (1 - deltaI) * (1 - deltaJ)
-                    + atNode(leftI + 1, loJ) * deltaI * (1 - deltaJ)
-                    + atNode(leftI, loJ + 1) * (1 - deltaI) * deltaJ
-                    + atNode(leftI + 1, loJ + 1) * deltaI * deltaJ;
+            return atNode(leftI, topJ) * (1 - deltaI) * (1 - deltaJ)
+                    + atNode(leftI + 1, topJ) * deltaI * (1 - deltaJ)
+                    + atNode(leftI, topJ + 1) * (1 - deltaI) * deltaJ
+                    + atNode(leftI + 1, topJ + 1) * deltaI * deltaJ;
         } else if (x >= xEnd && y < yEnd) {
-            return atNode(leftI, loJ) * (1 - deltaJ)
-                    + atNode(leftI, loJ + 1) * deltaJ;
+            return atNode(leftI, topJ) * (1 - deltaJ)
+                    + atNode(leftI, topJ + 1) * deltaJ;
         } else if (x < xEnd && y >= yEnd) {
-            return atNode(leftI, loJ) * (1 - deltaI)
-                    + atNode(leftI + 1, loJ) * deltaI;
+            return atNode(leftI, topJ) * (1 - deltaI)
+                    + atNode(leftI + 1, topJ) * deltaI;
         } else {
-            return atNode(leftI, loJ);
+            return atNode(leftI, topJ);
         }
 
     }
@@ -155,45 +157,41 @@ public class GridFunction {
         for (int j = 0; j < ny - 1; j++) {
             for (int i = 0; i < nx - 1; i++) {
                 ArrayList<Point2D> intersects = new ArrayList<>();
-                double leftX = x0 + dx * i;
-                double rightX = x0 + dx * (i + 1);
-                double bottomY = y0 + dy * j;
-                double topY = y0 + dy * (j + 1);
+                double loX = x0 + dx * i;
+                double hiX = x0 + dx * (i + 1);
+                double loY = y0 + dy * j;
+                double hiY = y0 + dy * (j + 1);
 
-                double zBottomLeft = atNode(i, j);
-                double zBottomRight = atNode(i + 1, j);
                 double zTopLeft = atNode(i, j + 1);
                 double zTopRight = atNode(i + 1, j + 1);
+                double zBottomLeft = atNode(i, j);
+                double zBottomRight = atNode(i + 1, j);
 
                 // bottom
                 if (isIntersected(zBottomLeft, zBottomRight, level)) {
-                    double x = leftX + dx * (level - zBottomLeft) / (zBottomRight - zBottomLeft);
-                    Point2D.Double p = new Point2D.Double(x, bottomY);
-//                    System.out.println(p);
+                    double x = loX + dx * (level - zBottomLeft) / (zBottomRight - zBottomLeft);
+                    Point2D.Double p = new Point2D.Double(x, loY);
                     intersects.add(p);
                 }
 
                 // top
                 if (isIntersected(zTopLeft, zTopRight, level)) {
-                    double x = leftX + dx * (level - zTopLeft) / (zTopRight - zTopLeft);
-                    Point2D.Double p = new Point2D.Double(x, topY);
-//                    System.out.println(p);
+                    double x = loX + dx * (level - zTopLeft) / (zTopRight - zTopLeft);
+                    Point2D.Double p = new Point2D.Double(x, hiY);
                     intersects.add(p);
                 }
 
                 // left
                 if (isIntersected(zBottomLeft, zTopLeft, level)) {
-                    double y = bottomY + dy * (level - zBottomLeft) / (zTopLeft - zBottomLeft);
-                    Point2D.Double p = new Point2D.Double(leftX, y);
-//                    System.out.println(p);
+                    double y = loY + dy * (level - zBottomLeft) / (zTopLeft - zBottomLeft);
+                    Point2D.Double p = new Point2D.Double(loX, y);
                     intersects.add(p);
                 }
 
                 // right
                 if (isIntersected(zBottomRight, zTopRight, level)) {
-                    double y = bottomY + dy * (level - zBottomRight) / (zTopRight - zBottomRight);
-                    Point2D.Double p = new Point2D.Double(rightX, y);
-//                    System.out.println(p);
+                    double y = loY + dy * (level - zBottomRight) / (zTopRight - zBottomRight);
+                    Point2D.Double p = new Point2D.Double(hiX, y);
                     intersects.add(p);
                 }
 

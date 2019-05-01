@@ -98,19 +98,12 @@ public class MapView extends JPanel {
 
     public void showTemporaryIsoline(int x, int y) {
         if (showIsolines && x >= 0 && x < width && y >= 0 && y < height) {
-            temporaryIsoline = fun.getIsoline(fun.at(pixelToDouble(x, y)));
+            temporaryIsoline = fun.getIsoline(fun.at(pixelToDouble(x, height - 1 - y)));
             repaint();
         }
     }
 
     public MapView(final Config config) {
-//        this.addComponentListener(new ComponentAdapter() {
-//            @Override
-//            public void componentResized(ComponentEvent e) {
-//                super.componentResized(e);
-//                onContainerSizeChanged();
-//            }
-//        });
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
@@ -124,17 +117,16 @@ public class MapView extends JPanel {
 
     //todo: cleanup, proper formatting
     public String statusBarMessage(int x, int y) {
-        if (x < width && y < height) {
+        if (x >= 0 && y >= 0 && x < width && y < height) {
             double xx = fun.x0() + x * pixelDeltaX;
             double yy = fun.yEnd() - y * pixelDeltaY;
             Color c = new Color(map.getRGB(x, y));
             return "xi = " + (int) (x / cellDeltaPixelX) +
-                    " yj = " + (int) (y / cellDeltaPixelY) +
-                    " x = " + String.format("%.3f", xx) +
+                    ", yj = " + (int) (y / cellDeltaPixelY) +
+                    ", x = " + String.format("%.3f", xx) +
                     ", y = " + String.format("%.3f", yy) +
                     ", f(x, y) = " + String.format("%.3f", fun.at(xx, yy)) +
-                    ", color = (" + c.getRed() + ", " + c.getGreen() + ", " + c.getBlue() + ")" +
-                    ", colorIndex = " + legend.colorIndexAt(fun.at(xx, yy));
+                    ", color = (" + c.getRed() + ", " + c.getGreen() + ", " + c.getBlue() + ")";
         } else {
             return "";
         }
@@ -216,7 +208,6 @@ public class MapView extends JPanel {
     }
 
     private void drawSegmented(Graphics g, List<Segment> segments) {
-//        System.out.println("MapView.drawSegmented");
         g.setColor(isolinesColor);
         segments.forEach(s -> {
             Point start = doubleToPixel(s.start());
@@ -226,7 +217,6 @@ public class MapView extends JPanel {
     }
 
     private void drawIsoline(Graphics g, double level) {
-//        System.out.println("MapView.drawIsoline");
         g.setColor(isolinesColor);
         drawSegmented(g, fun.getIsoline(level));
     }
@@ -234,7 +224,7 @@ public class MapView extends JPanel {
     private Point doubleToPixel(Point2D p) {
         return new Point(
                 (int) round((p.getX() - fun.x0()) / pixelDeltaX),
-                (int) round((p.getY() - fun.y0()) / pixelDeltaY)
+                (int) round((fun.yEnd() - p.getY()) / pixelDeltaY)
         );
     }
 

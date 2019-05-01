@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SplineView extends JPanel {
+    private static int DETAILING = 50;
     private List<Point2D> points;
     private List<Point2D> pivots = Arrays.asList(
             new Point2D.Double(1., 1.),
@@ -21,8 +22,11 @@ public class SplineView extends JPanel {
     );
 
     public SplineView() {
+        points = new Spline(pivots).evaluate(DETAILING);
+    }
 
-        points = new Spline(pivots).evaluate(50);
+    public SplineView(Spline spline) {
+        points = spline.evaluate(DETAILING);
     }
 
     @Override

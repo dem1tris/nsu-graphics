@@ -179,10 +179,10 @@ public class IsolinesMainWindow extends AdvancedMainFrame {
         Config old = view.getConfig();
         params.put("Grid width", old.gridWidth);
         params.put("Grid height", old.gridHeight);
-        params.put("x0", (int) old.x0);
-        params.put("xEnd", (int) old.xEnd);
-        params.put("y0", (int) old.y0);
-        params.put("yEnd", (int) old.yEnd);
+        params.put("min X", (int) old.x0);
+        params.put("max X", (int) old.xEnd);
+        params.put("min Y", (int) old.y0);
+        params.put("max Y", (int) old.yEnd);
 
         Map<String, Consumer<Integer>> validators = new HashMap<>(2);
         Consumer<Integer> validator = val -> { if (val < 2) throw new IllegalArgumentException("Grid dimensions must be >= 2");};

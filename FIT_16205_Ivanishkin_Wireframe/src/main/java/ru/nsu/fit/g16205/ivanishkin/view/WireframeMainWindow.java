@@ -39,6 +39,7 @@ public class WireframeMainWindow extends AdvancedMainFrame {
 
 
             statusBar.setPreferredSize(new Dimension(this.getWidth(), STATUSBAR_HEIGHT));
+            add(new SplineView());
             pack();
 
             addSubMenu("File", KeyEvent.VK_F);

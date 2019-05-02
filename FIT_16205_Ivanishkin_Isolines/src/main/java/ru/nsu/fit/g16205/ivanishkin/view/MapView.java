@@ -74,7 +74,7 @@ public class MapView extends JPanel {
     }
 
     private void onContainerSizeChanged() {
-        width = getWidth() - LEGEND_WIDTH - PADDING;
+        width = calculateWidth();
         height = getHeight();
         pixelDeltaX = (fun.xEnd() - fun.x0()) / (width - 1);
         pixelDeltaY = (fun.yEnd() - fun.y0()) / (height - 1);
@@ -109,7 +109,7 @@ public class MapView extends JPanel {
             @Override
             public void mouseReleased(MouseEvent e) {
 //                System.out.println("mouseClicked " + e.getX() + " " + e.getY());
-                addIsoline(e.getX(), e.getY());
+                addIsoline(e.getX(), height - 1 - e.getY());
                 repaint();
             }
         });
@@ -167,9 +167,13 @@ public class MapView extends JPanel {
         }
     }
 
+    private int calculateWidth() {
+        return getWidth() - LEGEND_WIDTH - PADDING;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
-        if (width != getWidth() - LEGEND_WIDTH || height != getHeight()) {
+        if (width != calculateWidth() || height != getHeight()) {
             onContainerSizeChanged();
         }
         super.paintComponent(g);

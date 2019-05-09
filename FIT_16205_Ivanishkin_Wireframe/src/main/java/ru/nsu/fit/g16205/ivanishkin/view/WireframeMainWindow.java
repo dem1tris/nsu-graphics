@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * Main window class
@@ -20,6 +21,9 @@ public class WireframeMainWindow extends AdvancedMainFrame {
 
     private File file;
 
+    private SplineView splineView;
+    private SceneView sceneView;
+
     /**
      * Default constructor to create main window
      */
@@ -27,6 +31,12 @@ public class WireframeMainWindow extends AdvancedMainFrame {
         super(1200, 770, "Default - " + TITLE);
         setMinimumSize(new Dimension(400, 400));
         repaint();
+
+        splineView = new SplineView();
+        sceneView = new SceneView();
+        sceneView.setSpline(splineView.getSpline());
+
+        add(sceneView);
 
         try {
             this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -39,7 +49,8 @@ public class WireframeMainWindow extends AdvancedMainFrame {
 
 
             statusBar.setPreferredSize(new Dimension(this.getWidth(), STATUSBAR_HEIGHT));
-            add(new SplineView());
+            Arrays.stream(getComponents()).forEach(System.out::println);
+            Arrays.stream(getComponents()).forEach(System.out::println);
             pack();
 
             addSubMenu("File", KeyEvent.VK_F);
@@ -93,6 +104,12 @@ public class WireframeMainWindow extends AdvancedMainFrame {
     }
 
     public void onSettings() {
+        SplineDialog dialog = new SplineDialog(splineView);
+        dialog.pack();
+        dialog.setVisible(true);
+
+        sceneView.setSpline(splineView.getSpline());
+        repaint();
     }
 
     /**

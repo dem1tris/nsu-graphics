@@ -29,6 +29,8 @@ public class Spline {
     private final List<Point2D> pivots;
     private List<Point2D> points = new ArrayList<>();
     private double length;
+    private double startRatio;
+    private double endRatio;
     private int subsplineStart;
     private int subsplineEnd;
     private List<PolynomialFunction> xByTFuncs = new ArrayList<>();
@@ -86,6 +88,8 @@ public class Spline {
             }
         }
         points = Collections.unmodifiableList(points);
+        startRatio = 0;
+        endRatio = 1;
         subsplineStart = 0;
         subsplineEnd = points.size() - 1;
     }
@@ -119,6 +123,7 @@ public class Spline {
      * @return index of first point after (or exactly at) the specified part of spline
      */
     public int getSplitPoint(double ratio) {
+        // todo: read task, need function u -> {k, t}
         if (ratio < 0 || ratio > 1) {
             throw new IllegalArgumentException(ratio + " not in [0, 1]");
         } else if (ratio == 0) {
@@ -137,10 +142,40 @@ public class Spline {
         return points.size() - 1;
     }
 
+    /**
+     * @param detailing
+     * @return indices of points, crossed by parallels, in subspline points
+     */
+    public int[] getParallelsPoints(int detailing) {
+        List<Point2D> subsplinePoints = getSubsplinePoints();
+        int[] indices = new int[detailing + 1];
+        indices[0] = 0;
+        indices[detailing] = subsplinePoints.size() - 1;
+
+        double len = 0;
+        int j = 1;
+        double skipLength = length * (endRatio - startRatio) / detailing;
+
+        for (int i = 1; i < subsplinePoints.size(); i++) {
+            if (len >= skipLength) {
+                len -= skipLength;
+                indices[j++] = i;
+            }
+            len += subsplinePoints.get(i - 1).distance(subsplinePoints.get(i));
+        }
+
+        if (j != detailing) {
+            throw new IllegalStateException("" + j);
+        }
+        return indices;
+    }
+
     public void setSelectedSubspline(double startRatio, double endRatio) {
         if (startRatio < 0 || startRatio > 1 || startRatio > endRatio || endRatio < 0 || endRatio > 1) {
             throw new IllegalArgumentException(startRatio + ", " + endRatio);
         }
+        this.startRatio = startRatio;
+        this.endRatio = endRatio;
         subsplineStart = getSplitPoint(startRatio);
         subsplineEnd = getSplitPoint(endRatio);
     }
